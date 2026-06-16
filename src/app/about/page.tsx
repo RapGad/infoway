@@ -24,13 +24,13 @@ export default function About() {
       <section className="bg-gray-50 py-24 relative overflow-hidden">
         <div className="absolute inset-0 bg-primary/5"></div>
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10 text-center">
-          <motion.h1 
+          <motion.h1
             initial={{ opacity: 0, y: -20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.6 }}
             className="text-5xl md:text-6xl font-heading font-bold mb-6 text-gray-900"
           >
             Rooted in <span className="text-primary">Ghana.</span>
           </motion.h1>
-          <motion.p 
+          <motion.p
             initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.2, duration: 0.6 }}
             className="text-xl text-gray-600 max-w-2xl mx-auto"
           >
@@ -65,17 +65,17 @@ export default function About() {
               </motion.div>
             </motion.div>
 
-            <motion.div 
+            <motion.div
               initial={{ opacity: 0, scale: 0.9 }} whileInView={{ opacity: 1, scale: 1 }} viewport={{ once: true }} transition={{ duration: 0.8 }}
               className="grid grid-cols-2 gap-4 h-[600px]"
             >
               <div className="bg-gray-200 rounded-[2rem] h-full mt-12 relative overflow-hidden group shadow-lg">
-                 <img src="/local_town.png" alt="Duayaw Nkwanta Local Community" className="w-full h-full object-cover" />
-                 <div className="absolute inset-0 bg-primary/20 group-hover:opacity-0 transition-opacity z-10"></div>
+                <img src="/local_town.png" alt="Duayaw Nkwanta Local Community" className="w-full h-full object-cover" />
+                <div className="absolute inset-0 bg-primary/20 group-hover:opacity-0 transition-opacity z-10"></div>
               </div>
               <div className="bg-gray-300 rounded-[2rem] h-full mb-12 relative overflow-hidden group shadow-lg">
-                 <img src="/rural_tech.png" alt="Tower Installation" className="w-full h-full object-cover" />
-                 <div className="absolute inset-0 bg-gray-900/20 group-hover:opacity-0 transition-opacity z-10"></div>
+                <img src="/rural_tech.png" alt="Tower Installation" className="w-full h-full object-cover" />
+                <div className="absolute inset-0 bg-gray-900/20 group-hover:opacity-0 transition-opacity z-10"></div>
               </div>
             </motion.div>
           </div>
@@ -97,7 +97,7 @@ export default function About() {
               { icon: <Users className="w-8 h-8" />, title: "Community-First", desc: "Prioritising the needs, education, and growth of local communities." },
               { icon: <Heart className="w-8 h-8" />, title: "Transparency", desc: "Honest pricing, clear communication, and no hidden catches." }
             ].map((value, i) => (
-              <motion.div 
+              <motion.div
                 key={i}
                 initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ delay: i * 0.1 }}
                 className="bg-gray-800 p-8 rounded-3xl border border-gray-700 hover:border-primary transition-colors"
@@ -122,12 +122,13 @@ export default function About() {
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-12">
             {/* Real Team Members */}
             {[
-              { name: "APPIAH-BOATENG ALBERT", role: "CEO", desc: "Visionary behind Infoway's rural strategy." },
-              { name: "JEFFREY ADJEI HAYFORD", role: "Head of Software", desc: "Architect of our custom business dashboards." },
-              { name: "DAVID BROBBEY", role: "Data Analyst", desc: "Translating community data into actionable insights." },
-              { name: "ERIC AMOATENG", role: "Data Analyst", desc: "Optimizing our networks with predictive analytics." }
+              { name: "APPIAH-BOATENG ALBERT", role: "CEO", desc: "Visionary behind Infoway's rural strategy.", image: "/appiboat.jpeg" },
+              { name: "JEFFREY ADJEI HAYFORD", role: "Head of Software", desc: "Architect of our custom business dashboards.", image: '/Jeff.jpeg' },
+              { name: "DAVID ADOM-BROBBEY", role: "Data Analyst", desc: "Translating community data into actionable insights.", image: "/david.jpeg" },
+              { name: "GABRIEL KWESI YANKSON", role: "Senior Network Engineer", desc: "Ensuring our network infrastructure remains robust and scalable.", image: "/gabby.jpeg" },
+              { name: "ERIC AMOATENG", role: "Data Analyst", desc: "Optimizing our networks with predictive analytics.", image: null },
             ].map((member, i) => (
-              <motion.div 
+              <motion.div
                 key={i}
                 initial={{ opacity: 0, scale: 0.95 }} whileInView={{ opacity: 1, scale: 1 }} viewport={{ once: true }} transition={{ delay: i * 0.2 }}
                 className="text-center group"
@@ -135,7 +136,11 @@ export default function About() {
                 <div className="w-48 h-48 mx-auto bg-gray-200 rounded-full mb-6 overflow-hidden relative group-hover:shadow-[0_0_30px_rgba(255,107,0,0.6)] group-hover:scale-105 transition-all duration-500 border-4 border-transparent group-hover:border-primary/20">
                   <div className="absolute inset-0 bg-primary/10 group-hover:bg-transparent transition-colors z-10"></div>
                   <div className="w-full h-full flex items-center justify-center text-gray-400 font-medium">
-                    [Photo]
+                    {member.image ? (
+                      <img src={member.image} alt={member.name} className="w-full h-full object-cover" />
+                    ) : (
+                      "[Photo]"
+                    )}
                   </div>
                 </div>
                 <h3 className="text-2xl font-bold text-gray-900 mb-1">{member.name}</h3>
