@@ -1,0 +1,36 @@
+@import "tailwindcss";
+
+@theme inline {
+  --color-primary: #FF6B00;
+  --color-primary-dark: #E66000;
+  --color-accent-light: #FFF5EE; /* Light orange/sand */
+  --color-accent-border: #E5E7EB; /* Subtle grey */
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --font-sans: var(--font-inter);
+  --font-heading: var(--font-space-grotesk);
+}
+
+:root {
+  --background: #ffffff;
+  --foreground: #1E1E1E;
+}
+
+/* Base styles to respect reduce motion and smooth scroll */
+html {
+  scroll-behavior: smooth;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+}
+
+body {
+  background-color: var(--background);
+  color: var(--foreground);
+  font-family: var(--font-sans);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
