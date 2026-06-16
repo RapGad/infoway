@@ -21,7 +21,7 @@ const staggerContainer = {
 const faqs = [
   {
     question: "Do you offer coverage in my village?",
-    answer: "We cover Duayaw Nkwanta and are rapidly expanding to surrounding communities in the Ahafo Region. Please contact us with your exact location for a coverage check."
+    answer: "We cover major cities and are rapidly expanding nationwide. Please contact us with your exact location for a coverage check."
   },
   {
     question: "How do the internet vouchers work?",
@@ -84,7 +84,7 @@ export default function Services() {
             initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.2, duration: 0.6 }}
             className="text-xl text-gray-400 max-w-2xl mx-auto"
           >
-            From permanent digital infrastructure to custom software solutions, we are building the future of the Ahafo Region.
+            From permanent digital infrastructure to custom software solutions, we are building the digital future of Ghana.
           </motion.p>
         </div>
       </section>
@@ -200,7 +200,7 @@ export default function Services() {
               <Headset className="w-5 h-5" /> IT Consulting & Support
             </div>
             <h2 className="text-4xl font-heading font-bold mb-4 text-gray-900">Comprehensive Tech Solutions</h2>
-            <p className="text-xl text-gray-600">Beyond internet and software, we provide the backbone for digital operations in Ahafo.</p>
+            <p className="text-xl text-gray-600">Beyond internet and software, we provide the backbone for digital operations across Ghana.</p>
           </motion.div>
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">

@@ -19,16 +19,17 @@ const spaceGrotesk = Space_Grotesk({
 
 export const metadata: Metadata = {
   title: {
-    template: "%s | Infoway - Ahafo's Premier Digital Provider",
-    default: "Infoway | Fast Internet & Custom Software in Ahafo",
+    template: "%s | Infoway Data Solutions",
+    default: "Infoway Data Solutions | Fast Internet & Custom Software",
   },
-  description: "Infoway provides reliable, high-speed rural internet and bespoke software development for communities and businesses in Duayaw Nkwanta and the Ahafo Region.",
-  metadataBase: new URL('https://infoway.com.gh'), // Placeholder domain
+  description: "Infoway Data Solutions provides reliable, high-speed internet and bespoke software development for communities and businesses nationwide.",
+  keywords: ["Infoway", "Infoway Data Solutions", "Internet Provider", "Software Development", "Ghana"],
+  metadataBase: new URL('https://infowaydatasolutions.com'),
   openGraph: {
-    title: "Infoway | Bridging the Digital Divide in Ahafo",
-    description: "Reliable rural connectivity and software solutions tailored for Ghana.",
-    url: "https://infoway.com.gh",
-    siteName: "Infoway",
+    title: "Infoway Data Solutions | Nationwide Digital Provider",
+    description: "Reliable connectivity and software solutions tailored for Ghana.",
+    url: "https://infowaydatasolutions.com",
+    siteName: "Infoway Data Solutions",
     locale: "en_GH",
     type: "website",
   },

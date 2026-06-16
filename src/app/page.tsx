@@ -45,7 +45,7 @@ export default function Home() {
                 Welcome to Infoway
               </motion.span>
               <motion.h1 variants={fadeIn} className="text-5xl md:text-7xl font-heading font-bold leading-tight mb-6 text-gray-900">
-                Building Digital Futures from the Heart of <span className="text-primary">Ahafo.</span>
+                Building Digital Futures <span className="text-primary">Nationwide.</span>
               </motion.h1>
               <motion.p variants={fadeIn} className="text-xl text-gray-600 mb-8 max-w-2xl leading-relaxed">
                 Infoway delivers fast, reliable internet and smart software — designed for communities that others overlook.
@@ -202,7 +202,7 @@ export default function Home() {
               initial="hidden" whileInView="visible" viewport={{ once: true }} variants={fadeIn}
             >
               <h2 className="text-4xl font-heading font-bold mb-6">Why Choose Infoway?</h2>
-              <p className="text-xl text-gray-600 mb-8">We are deeply rooted in the Ahafo Region, understanding the unique challenges and opportunities of our communities.</p>
+              <p className="text-xl text-gray-600 mb-8">We are deeply rooted in Ghana, understanding the unique challenges and opportunities of our communities nationwide.</p>
               
               <ul className="space-y-6">
                 {[
@@ -242,7 +242,7 @@ export default function Home() {
       <section className="py-24 bg-accent-light relative">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-16">
-            <h2 className="text-4xl font-heading font-bold mb-4">Voices from Ahafo</h2>
+            <h2 className="text-4xl font-heading font-bold mb-4">Voices from Our Clients</h2>
             <p className="text-xl text-gray-600">Hear what our users have to say.</p>
           </div>
 
@@ -293,7 +293,7 @@ export default function Home() {
             {[
               { title: "Expanding Coverage to Surroundings of Duayaw Nkwanta", category: "Rural Connectivity", date: "Oct 12, 2023", image: "/rural_tech.png" },
               { title: "5 Ways Custom Software Can Grow Your Local Business", category: "Software Tips", date: "Nov 05, 2023", image: "/project_dashboard.png" },
-              { title: "Digital Literacy: Empowering the Next Generation", category: "Tech in Ahafo", date: "Dec 01, 2023", image: "/team_meeting.png" }
+              { title: "Digital Literacy: Empowering the Next Generation", category: "Tech Nationwide", date: "Dec 01, 2023", image: "/team_meeting.png" }
             ].map((post, i) => (
               <motion.article 
                 key={i}

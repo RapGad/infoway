@@ -15,7 +15,7 @@ const mockPosts = [
   {
     id: "expanding-coverage",
     title: "Expanding Coverage to Surroundings of Duayaw Nkwanta",
-    excerpt: "We are thrilled to announce the completion of our new cell tower that will bring high-speed internet to three new villages in the Ahafo region.",
+    excerpt: "We are thrilled to announce the completion of our new cell tower that will bring high-speed internet to three new villages nationwide.",
     category: "Rural Connectivity",
     date: "Oct 12, 2023",
     author: "Kofi Mensah",
@@ -34,14 +34,14 @@ const mockPosts = [
     id: "digital-literacy",
     title: "Digital Literacy: Empowering the Next Generation",
     excerpt: "Highlights from our recent training bootcamp at the Duayaw Nkwanta Community Center, where over 50 students learned basic coding.",
-    category: "Tech in Ahafo",
+    category: "Tech Nationwide",
     date: "Dec 01, 2023",
     author: "Abena Osei",
     image: "bg-gradient-to-br from-emerald-400 to-teal-500"
   },
 ];
 
-const categories = ["Rural Connectivity", "Software Tips", "Tech in Ahafo", "Case Studies"];
+const categories = ["Rural Connectivity", "Software Tips", "Tech Nationwide", "Case Studies"];
 
 async function getPosts() {
   if (!process.env.NEXT_PUBLIC_SANITY_PROJECT_ID) {
@@ -97,7 +97,7 @@ export default async function Blog() {
             initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.2, duration: 0.6 }}
             className="text-xl text-gray-600 max-w-2xl mx-auto"
           >
-            Stay updated with our latest projects, tech tutorials, and stories from the Ahafo Region.
+            Stay updated with our latest projects, tech tutorials, and stories from across Ghana.
           </motion.p>
         </div>
       </section>

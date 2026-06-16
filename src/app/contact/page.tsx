@@ -71,7 +71,7 @@ export default function Contact() {
                     </div>
                     <div>
                       <h4 className="font-bold text-gray-900 text-lg">Office Address</h4>
-                      <p className="text-gray-600 mt-1">Main Tech Hub, near the central market<br />Duayaw Nkwanta, Ahafo Region<br />Ghana</p>
+                      <p className="text-gray-600 mt-1">Main Tech Hub, near the central market<br />Accra, Ghana<br />Ghana</p>
                     </div>
                   </div>
 

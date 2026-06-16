@@ -33,7 +33,7 @@ export function Footer() {
               Infoway<span className="text-primary">.</span>
             </Link>
             <p className="text-gray-400 mb-6 leading-relaxed">
-              Building Digital Futures from the Heart of Ahafo. Fast, reliable internet and smart software designed for communities that others overlook.
+              Building Digital Futures Nationwide. Fast, reliable internet and smart software designed for communities that others overlook.
             </p>
             <div className="flex gap-4">
               <a href="#" className="w-10 h-10 rounded-full bg-white/5 flex items-center justify-center text-gray-400 hover:bg-primary hover:text-white transition-colors" aria-label="Facebook">
@@ -80,7 +80,7 @@ export function Footer() {
                 <MapPin className="w-5 h-5 text-primary shrink-0 mt-1" />
                 <span itemProp="address" itemScope itemType="https://schema.org/PostalAddress">
                   <span itemProp="streetAddress">Main Tech Hub, near the central market</span><br />
-                  <span itemProp="addressLocality">Duayaw Nkwanta</span>, <span itemProp="addressRegion">Ahafo Region</span><br />
+                  <span itemProp="addressLocality">Accra</span>, <span itemProp="addressRegion">Ghana</span><br />
                   <span itemProp="addressCountry">Ghana</span>
                 </span>
               </li>

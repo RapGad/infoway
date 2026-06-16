@@ -8,7 +8,7 @@ import { X, ArrowUpRight, Code, Database, Layout } from "lucide-react";
 const projects = [
   {
     id: 1,
-    title: "Ahafo Market Connect",
+    title: "National Market Connect",
     category: "Web App",
     client: "Duayaw Nkwanta Traders Association",
     image: "/project_dashboard.png",
@@ -21,7 +21,7 @@ const projects = [
     id: 2,
     title: "FarmGuard Management System",
     category: "Mobile App",
-    client: "AgriTech Ahafo Cooperative",
+    client: "AgriTech Ghana Cooperative",
     image: "/project_mobile.png",
     challenge: "Cooperative managers were tracking crop yields and fertilizer distribution on paper, leading to lost data and inefficiencies.",
     solution: "Developed an offline-capable mobile app for field agents to log data, which syncs to a central cloud dashboard when internet is available.",
@@ -43,7 +43,7 @@ const projects = [
     id: 4,
     title: "HealthTrack Clinic CMS",
     category: "Web App",
-    client: "Ahafo Community Clinic",
+    client: "National Community Clinic",
     image: "/project_mobile.png",
     challenge: "Patient records were entirely paper-based, making history tracking difficult and prone to damage or loss.",
     solution: "Built a secure, fast, and highly intuitive patient management system tailored to the clinic's specific workflow, compliant with local health data regulations.",

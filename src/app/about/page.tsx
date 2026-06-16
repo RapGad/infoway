@@ -28,7 +28,7 @@ export default function About() {
             initial={{ opacity: 0, y: -20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.6 }}
             className="text-5xl md:text-6xl font-heading font-bold mb-6 text-gray-900"
           >
-            Rooted in <span className="text-primary">Ahafo.</span>
+            Rooted in <span className="text-primary">Ghana.</span>
           </motion.h1>
           <motion.p 
             initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.2, duration: 0.6 }}
@@ -94,7 +94,7 @@ export default function About() {
             {[
               { icon: <Zap className="w-8 h-8" />, title: "Innovation", desc: "Finding creative, rugged solutions to complex rural tech problems." },
               { icon: <CheckCircle className="w-8 h-8" />, title: "Reliability", desc: "Building networks and software that people can depend on, rain or shine." },
-              { icon: <Users className="w-8 h-8" />, title: "Community-First", desc: "Prioritising the needs, education, and growth of Ahafo locals." },
+              { icon: <Users className="w-8 h-8" />, title: "Community-First", desc: "Prioritising the needs, education, and growth of local communities." },
               { icon: <Heart className="w-8 h-8" />, title: "Transparency", desc: "Honest pricing, clear communication, and no hidden catches." }
             ].map((value, i) => (
               <motion.div 

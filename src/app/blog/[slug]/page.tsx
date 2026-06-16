@@ -25,7 +25,7 @@ const mockPostContent: Record<string, any> = {
     <p>This expansion has been months in the making, involving careful terrain surveys, community meetings, and complex logistics to transport and install the equipment. Our engineering team worked tirelessly to ensure the network backbone is robust and capable of handling hundreds of simultaneous connections.</p>
     <h2>What this means for you</h2>
     <p>Residents and businesses in these areas can now access reliable broadband for the first time. Students will have access to e-learning resources, traders can access market data, and local businesses can now build an online presence.</p>
-    <p>We are committed to continuing this expansion across the entire Ahafo Region. Stay tuned for more announcements in the coming months.</p>`,
+    <p>We are committed to continuing this expansion nationwide. Stay tuned for more announcements in the coming months.</p>`,
   },
   "custom-software-growth": {
     title: "5 Ways Custom Software Can Grow Your Local Business",
@@ -47,7 +47,7 @@ const mockPostContent: Record<string, any> = {
   },
   "digital-literacy": {
     title: "Digital Literacy: Empowering the Next Generation",
-    category: "Tech in Ahafo",
+    category: "Tech Nationwide",
     date: "Dec 01, 2023",
     author: "Abena Osei",
     image: "/team_meeting.png",
