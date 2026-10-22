@@ -46,6 +46,28 @@ export const metadata: Metadata = {
   },
 };
 
+const organizationSchema = {
+  "@context": "https://schema.org",
+  "@type": "LocalBusiness",
+  "name": "Infoway Data Solutions",
+  "url": "https://infowaydatasolutions.com",
+  "logo": "https://infowaydatasolutions.com/logo-clean.png",
+  "image": "https://infowaydatasolutions.com/logo-clean.png",
+  "description": "Infoway Data Solutions provides reliable high-speed internet and bespoke software development nationwide across Ghana.",
+  "telephone": "+233506706787",
+  "address": {
+    "@type": "PostalAddress",
+    "streetAddress": "Main Tech Hub, Central Market",
+    "addressLocality": "Duayaw Nkwanta",
+    "addressRegion": "Ahafo",
+    "addressCountry": "GH"
+  },
+  "priceRange": "GH₵",
+  "sameAs": [
+    "https://wa.me/233506706787"
+  ]
+};
+
 export default function RootLayout({
   children,
 }: Readonly<{
@@ -54,6 +76,10 @@ export default function RootLayout({
   return (
     <html lang="en" className={`${inter.variable} ${spaceGrotesk.variable}`}>
       <body className="font-sans antialiased bg-white text-gray-900 selection:bg-primary/20 selection:text-primary min-h-screen flex flex-col">
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(organizationSchema) }}
+        />
         <Navbar />
         <main className="flex-grow pt-20">
           {children}
