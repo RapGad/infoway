@@ -6,7 +6,7 @@ export const metadata: Metadata = {
   openGraph: {
     title: "Latest News & Tech Blog | Infoway Data Solutions",
     description: "Insights on rural internet, software engineering, and digital growth in Ghana.",
-    url: "https://infoway.com.gh/blog",
+    url: "https://infowaydatasolutions.com/blog",
     siteName: "Infoway Data Solutions",
     locale: "en_GH",
     type: "website",

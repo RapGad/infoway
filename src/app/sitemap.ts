@@ -1,7 +1,7 @@
 import { MetadataRoute } from 'next'
  
 export default function sitemap(): MetadataRoute.Sitemap {
-  const baseUrl = 'https://infoway.com.gh'
+  const baseUrl = 'https://infowaydatasolutions.com'
   
   return [
     {

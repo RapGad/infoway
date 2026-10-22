@@ -6,7 +6,7 @@ export const metadata: Metadata = {
   openGraph: {
     title: "Community Polls & Price Voting | Infoway Data Solutions",
     description: "Vote on pricing, packages, and new features for Infoway Hotspots and rural connectivity.",
-    url: "https://infoway.com.gh/polls",
+    url: "https://infowaydatasolutions.com/polls",
     siteName: "Infoway Data Solutions",
     locale: "en_GH",
     type: "website",

@@ -6,7 +6,7 @@ export const metadata: Metadata = {
   openGraph: {
     title: "Contact Us & WhatsApp Support | Infoway Data Solutions",
     description: "Get connected with fast internet and custom software solutions. Chat with us on WhatsApp: 0506706787.",
-    url: "https://infoway.com.gh/contact",
+    url: "https://infowaydatasolutions.com/contact",
     siteName: "Infoway Data Solutions",
     locale: "en_GH",
     type: "website",
