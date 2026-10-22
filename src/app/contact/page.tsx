@@ -7,31 +7,49 @@ import { useState } from "react";
 export default function Contact() {
   const [formState, setFormState] = useState<'idle' | 'submitting' | 'success'>('idle');
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setFormState('submitting');
-    // Mock submission
-    setTimeout(() => {
-      setFormState('success');
-    }, 1500);
+    
+    const formData = new FormData(e.currentTarget);
+    // Replace with your Web3Forms Access Key from https://web3forms.com/
+    formData.append("access_key", process.env.NEXT_PUBLIC_WEB3FORMS_KEY || "");
+
+    try {
+      const response = await fetch("https://api.web3forms.com/submit", {
+        method: "POST",
+        body: formData
+      });
+      const data = await response.json();
+      if (data.success) {
+        setFormState('success');
+      } else {
+        console.error("Error submitting form", data);
+        setFormState('idle');
+      }
+    } catch (err) {
+      console.error(err);
+      setFormState('idle');
+    }
   };
 
   return (
     <>
-      <section className="bg-gray-50 py-24 border-b border-gray-100">
+      <section className="bg-gray-50 py-16 sm:py-24 border-b border-gray-100">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
           <motion.div 
             initial={{ opacity: 0, y: -20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.6 }}
-            className="flex items-center justify-center gap-6 mb-6"
+            className="flex items-center justify-center gap-4 sm:gap-6 mb-6"
           >
-            <h1 className="text-5xl md:text-6xl font-heading font-bold text-gray-900">
+            <h1 className="text-4xl sm:text-5xl md:text-6xl font-heading font-bold text-gray-900">
               Get in <span className="text-primary">Touch.</span>
             </h1>
-            <div className="text-primary">
+            <div className="text-primary shrink-0">
               <motion.svg 
                 xmlns="http://www.w3.org/2000/svg" 
-                width="64" height="64" viewBox="0 0 24 24" fill="none" 
+                viewBox="0 0 24 24" fill="none" 
                 stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"
+                className="w-10 h-10 sm:w-16 sm:h-16"
               >
                 <motion.path 
                   initial={{ pathLength: 0 }}
@@ -44,16 +62,16 @@ export default function Contact() {
           </motion.div>
           <motion.p
             initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.2, duration: 0.6 }}
-            className="text-xl text-gray-600 max-w-2xl mx-auto"
+            className="text-base sm:text-xl text-gray-600 max-w-2xl mx-auto"
           >
             Ready to bring internet to your community or start a software project? We're here to help.
           </motion.p>
         </div>
       </section>
 
-      <section className="py-24 bg-white relative">
+      <section className="py-12 sm:py-24 bg-white relative">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="grid grid-cols-1 lg:grid-cols-5 gap-16">
+          <div className="grid grid-cols-1 lg:grid-cols-5 gap-10 lg:gap-16">
 
             {/* Contact Info */}
             <motion.div
@@ -76,22 +94,24 @@ export default function Contact() {
                   </div>
 
                   <div className="flex items-start gap-4">
-                    <div className="w-12 h-12 bg-accent-light rounded-full flex items-center justify-center text-primary shrink-0">
+                    <div className="w-12 h-12 bg-[#25D366]/10 rounded-full flex items-center justify-center text-[#25D366] shrink-0">
                       <Phone className="w-6 h-6" />
                     </div>
                     <div>
-                      <h4 className="font-bold text-gray-900 text-lg">Phone / WhatsApp</h4>
-                      <p className="text-gray-600 mt-1"><a href="tel:+233000000000" className="hover:text-primary transition-colors">+233 (0) 000 000 000</a></p>
-                    </div>
-                  </div>
-
-                  <div className="flex items-start gap-4">
-                    <div className="w-12 h-12 bg-accent-light rounded-full flex items-center justify-center text-primary shrink-0">
-                      <Mail className="w-6 h-6" />
-                    </div>
-                    <div>
-                      <h4 className="font-bold text-gray-900 text-lg">Email Us</h4>
-                      <p className="text-gray-600 mt-1"><a href="mailto:hello@infoway.com.gh" className="hover:text-primary transition-colors">hello@infoway.com.gh</a></p>
+                      <h4 className="font-bold text-gray-900 text-lg">WhatsApp & Calls</h4>
+                      <p className="text-gray-600 mt-1">
+                        <a href="https://wa.me/233506706787" target="_blank" rel="noopener noreferrer" className="font-semibold text-gray-900 hover:text-[#25D366] transition-colors block text-lg">
+                          050 670 6787
+                        </a>
+                      </p>
+                      <a
+                        href="https://wa.me/233506706787?text=Hello%20Infoway!%20I%20would%20like%20to%20make%20an%20inquiry."
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="inline-flex items-center gap-1.5 mt-2 text-xs font-bold text-white bg-[#25D366] hover:bg-[#1EBE5D] px-3.5 py-1.5 rounded-full transition-all"
+                      >
+                        Chat on WhatsApp
+                      </a>
                     </div>
                   </div>
 
@@ -129,22 +149,17 @@ export default function Contact() {
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <div>
                       <label htmlFor="name" className="block text-sm font-medium text-gray-700 mb-2">Full Name</label>
-                      <input type="text" id="name" required className="w-full bg-gray-50 border border-gray-200 rounded-xl py-3 px-4 focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary transition-colors" placeholder="John Doe" />
+                      <input type="text" id="name" name="name" required className="w-full bg-gray-50 border border-gray-200 rounded-xl py-3 px-4 focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary transition-colors" placeholder="John Doe" />
                     </div>
                     <div>
-                      <label htmlFor="phone" className="block text-sm font-medium text-gray-700 mb-2">Phone Number</label>
-                      <input type="tel" id="phone" required className="w-full bg-gray-50 border border-gray-200 rounded-xl py-3 px-4 focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary transition-colors" placeholder="+233..." />
+                      <label htmlFor="phone" className="block text-sm font-medium text-gray-700 mb-2">Phone / WhatsApp Number</label>
+                      <input type="tel" id="phone" name="phone" required className="w-full bg-gray-50 border border-gray-200 rounded-xl py-3 px-4 focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary transition-colors" placeholder="050 000 0000" />
                     </div>
-                  </div>
-
-                  <div>
-                    <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-2">Email Address</label>
-                    <input type="email" id="email" required className="w-full bg-gray-50 border border-gray-200 rounded-xl py-3 px-4 focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary transition-colors" placeholder="john@example.com" />
                   </div>
 
                   <div>
                     <label htmlFor="service" className="block text-sm font-medium text-gray-700 mb-2">Service of Interest</label>
-                    <select id="service" className="w-full bg-gray-50 border border-gray-200 rounded-xl py-3 px-4 focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary transition-colors appearance-none">
+                    <select id="service" name="service" className="w-full bg-gray-50 border border-gray-200 rounded-xl py-3 px-4 focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary transition-colors appearance-none">
                       <option value="internet">Rural Internet</option>
                       <option value="software">Software Development</option>
                       <option value="consulting">IT Consulting & Support</option>
@@ -154,7 +169,7 @@ export default function Contact() {
 
                   <div>
                     <label htmlFor="message" className="block text-sm font-medium text-gray-700 mb-2">Your Message</label>
-                    <textarea id="message" rows={5} required className="w-full bg-gray-50 border border-gray-200 rounded-xl py-3 px-4 focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary transition-colors resize-none" placeholder="How can we help you?"></textarea>
+                    <textarea id="message" name="message" rows={5} required className="w-full bg-gray-50 border border-gray-200 rounded-xl py-3 px-4 focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary transition-colors resize-none" placeholder="How can we help you?"></textarea>
                   </div>
 
                   <button

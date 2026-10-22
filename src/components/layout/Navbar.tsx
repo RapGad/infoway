@@ -4,11 +4,14 @@ import { useState, useEffect } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
-import { Menu, X, Wifi } from "lucide-react";
+import Image from "next/image";
+import { Menu, X } from "lucide-react";
 
 const navLinks = [
   { name: "Home", path: "/" },
   { name: "Services", path: "/services" },
+  { name: "Partnership", path: "/partnership" },
+  { name: "Polls", path: "/polls" },
   { name: "About", path: "/about" },
   { name: "Portfolio", path: "/portfolio" },
   { name: "Blog", path: "/blog" },
@@ -37,13 +40,17 @@ export function Navbar() {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between items-center h-20">
           {/* Logo */}
-          <Link href="/" className="flex items-center gap-2 group">
-            <div className="bg-primary p-2 rounded-lg group-hover:scale-105 transition-transform">
-              <Wifi className="w-6 h-6 text-white" />
+          <Link href="/" className="flex items-center gap-3 group">
+            <div className="relative h-12 w-auto flex items-center group-hover:scale-105 transition-transform">
+              <Image
+                src="/logo-clean.png"
+                alt="Infoway Logo"
+                width={120}
+                height={48}
+                priority
+                className="h-10 w-auto object-contain rounded"
+              />
             </div>
-            <span className="font-heading font-bold text-2xl tracking-tight text-foreground">
-              Infoway
-            </span>
           </Link>
 
           {/* Desktop Nav */}
@@ -92,7 +99,7 @@ export function Navbar() {
             initial={{ opacity: 0, height: 0 }}
             animate={{ opacity: 1, height: "auto" }}
             exit={{ opacity: 0, height: 0 }}
-            className="md:hidden bg-white border-t border-gray-100 shadow-lg overflow-hidden"
+            className="md:hidden bg-white border-t border-gray-100 shadow-xl max-h-[calc(100vh-5rem)] overflow-y-auto"
           >
             <div className="flex flex-col px-4 py-6 space-y-4">
               {navLinks.map((link) => (

@@ -67,13 +67,13 @@ export default function About() {
 
             <motion.div
               initial={{ opacity: 0, scale: 0.9 }} whileInView={{ opacity: 1, scale: 1 }} viewport={{ once: true }} transition={{ duration: 0.8 }}
-              className="grid grid-cols-2 gap-4 h-[600px]"
+              className="grid grid-cols-1 md:grid-cols-2 gap-6 md:gap-4 h-auto md:h-[600px]"
             >
-              <div className="bg-gray-200 rounded-[2rem] h-full mt-12 relative overflow-hidden group shadow-lg">
+              <div className="bg-gray-200 rounded-[2rem] h-[300px] md:h-full md:mt-12 relative overflow-hidden group shadow-lg">
                 <img src="/local_town.png" alt="Duayaw Nkwanta Local Community" className="w-full h-full object-cover" />
                 <div className="absolute inset-0 bg-primary/20 group-hover:opacity-0 transition-opacity z-10"></div>
               </div>
-              <div className="bg-gray-300 rounded-[2rem] h-full mb-12 relative overflow-hidden group shadow-lg">
+              <div className="bg-gray-300 rounded-[2rem] h-[300px] md:h-full md:mb-12 relative overflow-hidden group shadow-lg">
                 <img src="/rural_tech.png" alt="Tower Installation" className="w-full h-full object-cover" />
                 <div className="absolute inset-0 bg-gray-900/20 group-hover:opacity-0 transition-opacity z-10"></div>
               </div>
@@ -126,7 +126,7 @@ export default function About() {
               { name: "JEFFREY ADJEI HAYFORD", role: "Head of Software", desc: "Architect of our custom business dashboards.", image: '/Jeff.jpeg' },
               { name: "DAVID ADOM-BROBBEY", role: "Data Analyst", desc: "Translating community data into actionable insights.", image: "/david.jpeg" },
               { name: "GABRIEL KWESI YANKSON", role: "Senior Network Engineer", desc: "Ensuring our network infrastructure remains robust and scalable.", image: "/gabby.jpeg" },
-              { name: "ERIC AMOATENG", role: "Data Analyst", desc: "Optimizing our networks with predictive analytics.", image: null },
+              { name: "ERIC AMOATENG", role: "Data Analyst", desc: "Optimizing our networks with predictive analytics.", image: "/eric.jpeg" },
             ].map((member, i) => (
               <motion.div
                 key={i}

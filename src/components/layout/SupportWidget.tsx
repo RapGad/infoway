@@ -26,7 +26,7 @@ export function SupportWidget() {
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: 20, scale: 0.9 }}
             transition={{ duration: 0.3 }}
-            className="bg-white rounded-3xl shadow-2xl border border-gray-100 w-80 mb-4 overflow-hidden"
+            className="bg-white rounded-3xl shadow-2xl border border-gray-100 w-80 max-w-[calc(100vw-2.5rem)] mb-4 overflow-hidden"
           >
             <div className="bg-primary text-white p-6 flex justify-between items-center">
               <h3 className="font-bold text-lg">Leave a message</h3>
