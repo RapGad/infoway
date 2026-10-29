@@ -61,6 +61,7 @@ export function Footer() {
               <li><Link href="/" className="text-gray-400 hover:text-white transition-colors">Home</Link></li>
               <li><Link href="/partnership" className="text-primary hover:text-primary-dark font-medium transition-colors">Partnership Program</Link></li>
               <li><Link href="/polls" className="text-gray-300 hover:text-primary font-medium transition-colors">Community Polls</Link></li>
+              <li><Link href="/feedback" className="text-gray-300 hover:text-primary font-medium transition-colors">Send Feedback</Link></li>
               <li><Link href="/about" className="text-gray-400 hover:text-white transition-colors">Our Story</Link></li>
               <li><Link href="/portfolio" className="text-gray-400 hover:text-white transition-colors">Software Portfolio</Link></li>
               <li><Link href="/blog" className="text-gray-400 hover:text-white transition-colors">Latest News</Link></li>

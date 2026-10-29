@@ -6,7 +6,8 @@ import { motion, AnimatePresence } from "framer-motion";
 import {
   Package, ShoppingBag, TrendingUp, Plus, X, CheckCircle,
   Trash2, Edit3, Search, Filter, Eye, AlertCircle,
-  Store, RefreshCw, BarChart3, MapPin, Phone, Tag, LogOut, Lock, Vote, ExternalLink
+  Store, RefreshCw, BarChart3, MapPin, Phone, Tag, LogOut, Lock, Vote, ExternalLink,
+  MessageSquareHeart, Star, CheckCircle2, User, Mail, MessageSquare, Clock
 } from "lucide-react";
 
 // ---------- Interfaces ----------
@@ -73,7 +74,40 @@ interface Order {
   createdAt: string;
 }
 
-type AdminTab = "orders" | "products" | "businesses" | "polls";
+interface FeedbackItem {
+  _id: string;
+  name?: string;
+  email?: string;
+  phone?: string;
+  category: "connectivity" | "vouchers" | "customer_service" | "pricing" | "feature_request" | "general";
+  rating: number;
+  subject?: string;
+  message: string;
+  location?: string;
+  role?: string;
+  status: "new" | "reviewed" | "in_progress" | "resolved" | "archived";
+  adminNotes?: string;
+  createdAt: string;
+}
+
+type AdminTab = "orders" | "products" | "businesses" | "polls" | "feedback";
+
+const FEEDBACK_STATUS_COLORS: Record<string, string> = {
+  new: "bg-blue-100 text-blue-700 border-blue-200",
+  reviewed: "bg-purple-100 text-purple-700 border-purple-200",
+  in_progress: "bg-amber-100 text-amber-700 border-amber-200",
+  resolved: "bg-green-100 text-green-700 border-green-200",
+  archived: "bg-gray-100 text-gray-700 border-gray-200",
+};
+
+const FEEDBACK_CATEGORY_LABELS: Record<string, string> = {
+  connectivity: "Internet & Wi-Fi Speed",
+  vouchers: "Hotspot Vouchers & Login",
+  customer_service: "Customer Care",
+  pricing: "Pricing & Plans",
+  feature_request: "Feature Request",
+  general: "General Feedback",
+};
 
 const STATUS_COLORS: Record<string, string> = {
   pending: "bg-yellow-100 text-yellow-700 border-yellow-200",
@@ -218,6 +252,17 @@ export default function AdminPage() {
     options: "", // newline separated
   });
 
+  // Feedback State
+  const [feedbacks, setFeedbacks] = useState<FeedbackItem[]>([]);
+  const [loadingFeedbacks, setLoadingFeedbacks] = useState(true);
+  const [selectedFeedback, setSelectedFeedback] = useState<FeedbackItem | null>(null);
+  const [feedbackStatusFilter, setFeedbackStatusFilter] = useState("all");
+  const [feedbackCategoryFilter, setFeedbackCategoryFilter] = useState("all");
+  const [feedbackRatingFilter, setFeedbackRatingFilter] = useState("all");
+  const [feedbackSearch, setFeedbackSearch] = useState("");
+  const [editingAdminNotes, setEditingAdminNotes] = useState("");
+  const [savingFeedbackNotes, setSavingFeedbackNotes] = useState(false);
+
   const fetchOrders = useCallback(async () => {
     if (!isAuthenticated) return;
     setLoadingOrders(true);
@@ -266,10 +311,25 @@ export default function AdminPage() {
     }
   }, [isAuthenticated]);
 
+  const fetchFeedbacks = useCallback(async () => {
+    if (!isAuthenticated) return;
+    setLoadingFeedbacks(true);
+    try {
+      const res = await fetch("/api/feedback");
+      const data = await res.json();
+      if (data.success) setFeedbacks(data.feedbacks);
+    } catch {
+      // ignore
+    } finally {
+      setLoadingFeedbacks(false);
+    }
+  }, [isAuthenticated]);
+
   useEffect(() => { fetchOrders(); }, [fetchOrders]);
   useEffect(() => { fetchProducts(); }, [fetchProducts]);
   useEffect(() => { fetchBusinesses(); }, [fetchBusinesses]);
   useEffect(() => { fetchPolls(); }, [fetchPolls]);
+  useEffect(() => { fetchFeedbacks(); }, [fetchFeedbacks]);
 
   // Poll Actions
   async function savePoll(e: React.FormEvent) {
@@ -338,6 +398,67 @@ export default function AdminPage() {
       }
     } catch {
       showToast("Failed to delete poll", "error");
+    }
+  }
+
+  // Feedback Actions
+  async function updateFeedbackStatus(id: string, status: string) {
+    try {
+      const res = await fetch(`/api/feedback/${id}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ status }),
+      });
+      const data = await res.json();
+      if (data.success) {
+        setFeedbacks((prev) => prev.map((f) => (f._id === id ? data.feedback : f)));
+        if (selectedFeedback && selectedFeedback._id === id) {
+          setSelectedFeedback(data.feedback);
+        }
+        showToast(`Feedback marked as ${status.replace('_', ' ')}`);
+      }
+    } catch {
+      showToast("Failed to update feedback status", "error");
+    }
+  }
+
+  async function saveFeedbackNotes(id: string) {
+    setSavingFeedbackNotes(true);
+    try {
+      const res = await fetch(`/api/feedback/${id}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ adminNotes: editingAdminNotes }),
+      });
+      const data = await res.json();
+      if (data.success) {
+        setFeedbacks((prev) => prev.map((f) => (f._id === id ? data.feedback : f)));
+        if (selectedFeedback && selectedFeedback._id === id) {
+          setSelectedFeedback(data.feedback);
+        }
+        showToast("Admin notes saved");
+      }
+    } catch {
+      showToast("Failed to save admin notes", "error");
+    } finally {
+      setSavingFeedbackNotes(false);
+    }
+  }
+
+  async function deleteFeedback(id: string) {
+    if (!confirm("Are you sure you want to permanently delete this feedback?")) return;
+    try {
+      const res = await fetch(`/api/feedback/${id}`, { method: "DELETE" });
+      const data = await res.json();
+      if (data.success) {
+        setFeedbacks((prev) => prev.filter((f) => f._id !== id));
+        if (selectedFeedback && selectedFeedback._id === id) {
+          setSelectedFeedback(null);
+        }
+        showToast("Feedback deleted");
+      }
+    } catch {
+      showToast("Failed to delete feedback", "error");
     }
   }
 
@@ -534,11 +655,19 @@ export default function AdminPage() {
     (o.customer.phone && o.customer.phone.includes(search))
   );
 
+  const unreadFeedbacks = feedbacks.filter((f) => f.status === "new").length;
+  const avgRating = feedbacks.length
+    ? (feedbacks.reduce((sum, f) => sum + f.rating, 0) / feedbacks.length).toFixed(1)
+    : "5.0";
+
   const stats = {
     totalOrders: orders.length,
     totalRevenue: orders.filter((o) => o.status !== "cancelled").reduce((s, o) => s + o.totalAmount, 0),
     totalBusinesses: businesses.length,
     totalProducts: products.length,
+    totalFeedbacks: feedbacks.length,
+    unreadFeedbacks,
+    avgRating,
   };
 
   if (isAuthenticated === null) {
@@ -656,7 +785,8 @@ export default function AdminPage() {
                   { key: "businesses", label: "Partners", icon: Store, count: businesses.length },
                   { key: "products", label: "Products", icon: Package, count: products.length },
                   { key: "polls", label: "Polls", icon: Vote, count: polls.length },
-                ].map(({ key, label, icon: Icon, count }) => (
+                  { key: "feedback", label: "Feedback", icon: MessageSquareHeart, count: feedbacks.length, highlight: unreadFeedbacks > 0 },
+                ].map(({ key, label, icon: Icon, count, highlight }) => (
                   <button
                     key={key}
                     onClick={() => setTab(key as AdminTab)}
@@ -667,7 +797,9 @@ export default function AdminPage() {
                   >
                     <Icon className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-primary" />
                     <span>{label}</span>
-                    <span className="bg-gray-200 text-gray-700 px-1.5 py-0.5 rounded-full text-[10px]">
+                    <span className={`px-1.5 py-0.5 rounded-full text-[10px] font-bold ${
+                      highlight ? "bg-primary text-white" : "bg-gray-200 text-gray-700"
+                    }`}>
                       {count}
                     </span>
                   </button>
@@ -689,13 +821,14 @@ export default function AdminPage() {
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8">
         {/* Top Metric Cards */}
-        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3 sm:gap-4 mb-8">
+        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3 sm:gap-4 mb-8">
           {[
             { label: "Total Orders", value: stats.totalOrders, icon: ShoppingBag, color: "text-blue-600 bg-blue-50" },
             { label: "Order Volume", value: `GHS ${stats.totalRevenue.toLocaleString()}`, icon: TrendingUp, color: "text-green-600 bg-green-50" },
             { label: "Partner Businesses", value: stats.totalBusinesses, icon: Store, color: "text-purple-600 bg-purple-50" },
             { label: "Listed Products", value: stats.totalProducts, icon: Package, color: "text-primary bg-accent-light" },
             { label: "Active Polls", value: `${polls.filter(p => p.isActive).length} / ${polls.length}`, icon: Vote, color: "text-amber-600 bg-amber-50" },
+            { label: "Student Feedback", value: `${stats.totalFeedbacks} (${stats.unreadFeedbacks} new)`, icon: MessageSquareHeart, color: "text-rose-600 bg-rose-50" },
           ].map((item, i) => (
             <div key={i} className="bg-white rounded-2xl p-4 sm:p-5 border border-gray-100 shadow-sm flex items-center justify-between gap-2">
               <div className="min-w-0">
@@ -1167,6 +1300,311 @@ export default function AdminPage() {
                     </div>
                   );
                 })}
+              </div>
+            )}
+          </motion.div>
+        )}
+
+        {/* ── TAB 5: FEEDBACK ── */}
+        {tab === "feedback" && (
+          <motion.div initial="hidden" animate="visible" variants={fadeIn}>
+            {/* Header info & filters */}
+            <div className="bg-white p-5 rounded-2xl border border-gray-100 shadow-sm mb-6">
+              <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 pb-4 border-b border-gray-100">
+                <div>
+                  <div className="flex items-center gap-2">
+                    <h2 className="text-xl font-heading font-bold text-gray-900">
+                      Customer & Student Feedback
+                    </h2>
+                    <span className="bg-primary/10 text-primary text-xs font-bold px-2.5 py-0.5 rounded-full">
+                      {feedbacks.length} total
+                    </span>
+                  </div>
+                  <p className="text-xs text-gray-500 mt-1">
+                    Live feedback from campus hostels, Wi-Fi hotspots, voucher users, and community partners.
+                  </p>
+                </div>
+
+                {/* Rating snapshot */}
+                <div className="flex items-center gap-4 bg-gray-50 px-4 py-2.5 rounded-2xl border border-gray-100">
+                  <div className="flex items-center gap-1.5">
+                    <Star className="w-5 h-5 text-amber-400 fill-amber-400" />
+                    <span className="text-lg font-bold font-heading text-gray-900">{stats.avgRating}</span>
+                    <span className="text-xs text-gray-400">/ 5.0</span>
+                  </div>
+                  <div className="h-6 w-px bg-gray-200" />
+                  <div className="text-xs">
+                    <span className="font-bold text-blue-600">{stats.unreadFeedbacks} New</span>
+                    <span className="text-gray-400 mx-1">•</span>
+                    <span className="font-medium text-green-600">
+                      {feedbacks.filter((f) => f.status === "resolved").length} Resolved
+                    </span>
+                  </div>
+                </div>
+              </div>
+
+              {/* Filters toolbar */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3 pt-4">
+                {/* Search */}
+                <div className="relative lg:col-span-2">
+                  <Search className="w-4 h-4 text-gray-400 absolute left-3 top-1/2 -translate-y-1/2" />
+                  <input
+                    type="text"
+                    placeholder="Search by name, location, keyword..."
+                    value={feedbackSearch}
+                    onChange={(e) => setFeedbackSearch(e.target.value)}
+                    className="w-full pl-9 pr-3 py-2 bg-gray-50 border border-gray-200 rounded-xl text-xs focus:outline-none focus:border-primary focus:bg-white"
+                  />
+                </div>
+
+                {/* Status Filter */}
+                <select
+                  value={feedbackStatusFilter}
+                  onChange={(e) => setFeedbackStatusFilter(e.target.value)}
+                  className="px-3 py-2 bg-gray-50 border border-gray-200 rounded-xl text-xs font-medium text-gray-700 focus:outline-none focus:border-primary"
+                >
+                  <option value="all">All Statuses</option>
+                  <option value="new">New / Unread</option>
+                  <option value="reviewed">Reviewed</option>
+                  <option value="in_progress">In Progress</option>
+                  <option value="resolved">Resolved</option>
+                  <option value="archived">Archived</option>
+                </select>
+
+                {/* Category Filter */}
+                <select
+                  value={feedbackCategoryFilter}
+                  onChange={(e) => setFeedbackCategoryFilter(e.target.value)}
+                  className="px-3 py-2 bg-gray-50 border border-gray-200 rounded-xl text-xs font-medium text-gray-700 focus:outline-none focus:border-primary"
+                >
+                  <option value="all">All Categories</option>
+                  <option value="connectivity">Internet & Speed</option>
+                  <option value="vouchers">Hotspot Vouchers</option>
+                  <option value="customer_service">Customer Care</option>
+                  <option value="pricing">Pricing & Plans</option>
+                  <option value="feature_request">Feature Request</option>
+                  <option value="general">General Feedback</option>
+                </select>
+
+                {/* Rating filter & Refresh */}
+                <div className="flex items-center gap-2">
+                  <select
+                    value={feedbackRatingFilter}
+                    onChange={(e) => setFeedbackRatingFilter(e.target.value)}
+                    className="w-full px-3 py-2 bg-gray-50 border border-gray-200 rounded-xl text-xs font-medium text-gray-700 focus:outline-none focus:border-primary"
+                  >
+                    <option value="all">All Star Ratings</option>
+                    <option value="5">5 Stars (Excellent)</option>
+                    <option value="4">4 Stars (Good)</option>
+                    <option value="3">3 Stars (Fair)</option>
+                    <option value="2">2 Stars (Poor)</option>
+                    <option value="1">1 Star (Critical)</option>
+                  </select>
+
+                  <button
+                    onClick={fetchFeedbacks}
+                    className="p-2 bg-gray-50 hover:bg-gray-100 border border-gray-200 rounded-xl text-gray-500 hover:text-primary transition-colors shrink-0"
+                    title="Refresh feedback"
+                  >
+                    <RefreshCw className="w-4 h-4" />
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            {/* Content List */}
+            {loadingFeedbacks ? (
+              <div className="bg-white rounded-2xl p-12 text-center border border-gray-100">
+                <div className="w-8 h-8 border-4 border-primary border-t-transparent rounded-full animate-spin mx-auto mb-3" />
+                <p className="text-gray-400 text-sm">Loading feedbacks...</p>
+              </div>
+            ) : feedbacks.length === 0 ? (
+              <div className="bg-white rounded-3xl p-12 text-center border border-gray-100 shadow-sm">
+                <div className="w-16 h-16 bg-rose-50 text-rose-500 rounded-2xl flex items-center justify-center mx-auto mb-4">
+                  <MessageSquareHeart className="w-8 h-8" />
+                </div>
+                <h3 className="font-heading font-bold text-gray-900 text-lg mb-1">No Feedback Received Yet</h3>
+                <p className="text-gray-500 text-xs max-w-md mx-auto mb-6">
+                  When students, campus residents, or customers submit comments via the Feedback portal, they will appear right here for review.
+                </p>
+                <Link
+                  href="/feedback"
+                  target="_blank"
+                  className="inline-flex items-center gap-2 px-5 py-2.5 bg-primary hover:bg-primary-dark text-white text-xs font-bold rounded-xl shadow-md transition-colors"
+                >
+                  <ExternalLink className="w-3.5 h-3.5" />
+                  <span>Open Public Feedback Form</span>
+                </Link>
+              </div>
+            ) : (
+              <div className="space-y-4">
+                {feedbacks
+                  .filter((f) => {
+                    const matchesStatus = feedbackStatusFilter === "all" || f.status === feedbackStatusFilter;
+                    const matchesCategory = feedbackCategoryFilter === "all" || f.category === feedbackCategoryFilter;
+                    const matchesRating = feedbackRatingFilter === "all" || String(f.rating) === feedbackRatingFilter;
+                    const matchesSearch =
+                      feedbackSearch === "" ||
+                      (f.name && f.name.toLowerCase().includes(feedbackSearch.toLowerCase())) ||
+                      (f.subject && f.subject.toLowerCase().includes(feedbackSearch.toLowerCase())) ||
+                      (f.message && f.message.toLowerCase().includes(feedbackSearch.toLowerCase())) ||
+                      (f.location && f.location.toLowerCase().includes(feedbackSearch.toLowerCase())) ||
+                      (f.email && f.email.toLowerCase().includes(feedbackSearch.toLowerCase()));
+                    return matchesStatus && matchesCategory && matchesRating && matchesSearch;
+                  })
+                  .map((item) => {
+                    const statusClass = FEEDBACK_STATUS_COLORS[item.status] || "bg-gray-100 text-gray-600";
+                    const categoryLabel = FEEDBACK_CATEGORY_LABELS[item.category] || item.category;
+
+                    return (
+                      <div
+                        key={item._id}
+                        className={`bg-white rounded-2xl p-5 border transition-all ${
+                          item.status === "new"
+                            ? "border-blue-200 shadow-md ring-1 ring-blue-100"
+                            : "border-gray-100 shadow-sm hover:shadow-md"
+                        }`}
+                      >
+                        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-3">
+                          {/* Sender Info & Rating */}
+                          <div className="flex items-center gap-3">
+                            <div className="w-10 h-10 rounded-xl bg-gray-100 text-gray-600 flex items-center justify-center font-bold text-sm shrink-0">
+                              {item.name ? item.name.charAt(0).toUpperCase() : "A"}
+                            </div>
+                            <div>
+                              <div className="flex items-center gap-2 flex-wrap">
+                                <span className="font-bold text-gray-900 text-sm">
+                                  {item.name || "Anonymous"}
+                                </span>
+                                {item.role && (
+                                  <span className="text-[10px] font-semibold uppercase bg-gray-100 text-gray-600 px-2 py-0.5 rounded-full capitalize">
+                                    {item.role.replace('_', ' ')}
+                                  </span>
+                                )}
+                              </div>
+                              <div className="flex items-center gap-2 mt-0.5">
+                                <div className="flex items-center text-amber-400">
+                                  {[1, 2, 3, 4, 5].map((s) => (
+                                    <Star
+                                      key={s}
+                                      className={`w-3.5 h-3.5 ${
+                                        s <= item.rating ? "fill-amber-400 text-amber-400" : "text-gray-200"
+                                      }`}
+                                    />
+                                  ))}
+                                </div>
+                                <span className="text-[11px] text-gray-400 font-medium">
+                                  {new Date(item.createdAt).toLocaleDateString("en-US", {
+                                    month: "short",
+                                    day: "numeric",
+                                    year: "numeric",
+                                    hour: "2-digit",
+                                    minute: "2-digit",
+                                  })}
+                                </span>
+                              </div>
+                            </div>
+                          </div>
+
+                          {/* Category and Status Badges */}
+                          <div className="flex items-center gap-2 shrink-0">
+                            <span className="text-[11px] font-semibold bg-gray-100 text-gray-700 px-2.5 py-1 rounded-lg">
+                              {categoryLabel}
+                            </span>
+                            <span
+                              className={`text-[11px] font-bold px-2.5 py-1 rounded-lg border uppercase tracking-wider capitalize flex items-center gap-1.5 ${statusClass}`}
+                            >
+                              {item.status === "new" && (
+                                <span className="w-1.5 h-1.5 rounded-full bg-blue-600 animate-ping" />
+                              )}
+                              <span>{item.status.replace("_", " ")}</span>
+                            </span>
+                          </div>
+                        </div>
+
+                        {/* Subject */}
+                        {item.subject && (
+                          <h4 className="font-bold text-gray-900 text-sm mb-1.5">{item.subject}</h4>
+                        )}
+
+                        {/* Message body */}
+                        <div className="bg-gray-50/70 p-3.5 rounded-xl border border-gray-100 text-gray-700 text-xs sm:text-sm leading-relaxed mb-3">
+                          {item.message}
+                        </div>
+
+                        {/* Metadata row (Location, contact, admin notes) */}
+                        <div className="flex flex-wrap items-center justify-between gap-3 text-xs text-gray-500 pt-2 border-t border-gray-100">
+                          <div className="flex flex-wrap items-center gap-3">
+                            {item.location && (
+                              <span className="flex items-center gap-1 text-primary font-medium">
+                                <MapPin className="w-3.5 h-3.5" />
+                                <span>{item.location}</span>
+                              </span>
+                            )}
+                            {item.email && (
+                              <span className="flex items-center gap-1 text-gray-500">
+                                <Mail className="w-3.5 h-3.5" />
+                                <span>{item.email}</span>
+                              </span>
+                            )}
+                            {item.phone && (
+                              <span className="flex items-center gap-1 text-gray-500">
+                                <Phone className="w-3.5 h-3.5" />
+                                <span>{item.phone}</span>
+                              </span>
+                            )}
+                            {item.adminNotes && (
+                              <span className="flex items-center gap-1 text-purple-700 bg-purple-50 px-2 py-0.5 rounded-md text-[11px] font-medium">
+                                <span>Note:</span>
+                                <span className="truncate max-w-[200px]">{item.adminNotes}</span>
+                              </span>
+                            )}
+                          </div>
+
+                          {/* Action Buttons */}
+                          <div className="flex items-center gap-2">
+                            {item.status === "new" && (
+                              <button
+                                onClick={() => updateFeedbackStatus(item._id, "reviewed")}
+                                className="px-2.5 py-1 text-xs font-bold text-blue-700 bg-blue-50 hover:bg-blue-100 rounded-lg transition-colors"
+                              >
+                                Mark Reviewed
+                              </button>
+                            )}
+
+                            {item.status !== "resolved" && (
+                              <button
+                                onClick={() => updateFeedbackStatus(item._id, "resolved")}
+                                className="px-2.5 py-1 text-xs font-bold text-green-700 bg-green-50 hover:bg-green-100 rounded-lg transition-colors flex items-center gap-1"
+                              >
+                                <CheckCircle className="w-3.5 h-3.5" />
+                                <span>Resolve</span>
+                              </button>
+                            )}
+
+                            <button
+                              onClick={() => {
+                                setSelectedFeedback(item);
+                                setEditingAdminNotes(item.adminNotes || "");
+                              }}
+                              className="px-3 py-1 text-xs font-bold text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-lg transition-colors flex items-center gap-1"
+                            >
+                              <Eye className="w-3.5 h-3.5" />
+                              <span>Details & Notes</span>
+                            </button>
+
+                            <button
+                              onClick={() => deleteFeedback(item._id)}
+                              className="p-1.5 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+                              title="Delete feedback"
+                            >
+                              <Trash2 className="w-3.5 h-3.5" />
+                            </button>
+                          </div>
+                        </div>
+                      </div>
+                    );
+                  })}
               </div>
             )}
           </motion.div>
@@ -1656,6 +2094,170 @@ export default function AdminPage() {
                     {saving ? "Publishing Poll..." : "Publish Poll"}
                   </button>
                 </form>
+              </div>
+            </motion.div>
+          </>
+        )}
+      </AnimatePresence>
+
+      {/* ── Feedback Detail & Management Modal ── */}
+      <AnimatePresence>
+        {selectedFeedback && (
+          <>
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              onClick={() => setSelectedFeedback(null)}
+              className="fixed inset-0 bg-black/50 z-50 backdrop-blur-sm"
+            />
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0, scale: 0.95 }}
+              className="fixed inset-0 z-50 flex items-center justify-center p-4 overflow-y-auto"
+            >
+              <div className="bg-white rounded-3xl shadow-2xl max-w-xl w-full max-h-[90vh] overflow-y-auto p-6 md:p-8">
+                <div className="flex items-center justify-between pb-4 border-b border-gray-100 mb-6">
+                  <div>
+                    <span className="text-xs text-primary font-bold uppercase tracking-wider">
+                      Feedback Review & Management
+                    </span>
+                    <h3 className="text-xl font-heading font-bold text-gray-900 mt-0.5">
+                      {selectedFeedback.name || "Anonymous User"}
+                    </h3>
+                  </div>
+                  <button
+                    onClick={() => setSelectedFeedback(null)}
+                    className="p-2 hover:bg-gray-100 rounded-full text-gray-400 hover:text-gray-600"
+                  >
+                    <X className="w-5 h-5" />
+                  </button>
+                </div>
+
+                <div className="space-y-5 text-sm">
+                  {/* Status update buttons */}
+                  <div>
+                    <label className="text-xs font-bold text-gray-500 uppercase block mb-2">
+                      Update Feedback Status
+                    </label>
+                    <div className="flex flex-wrap gap-2">
+                      {(["new", "reviewed", "in_progress", "resolved", "archived"] as const).map((st) => (
+                        <button
+                          key={st}
+                          onClick={() => updateFeedbackStatus(selectedFeedback._id, st)}
+                          className={`px-3 py-1.5 rounded-xl text-xs font-bold capitalize transition-all ${
+                            selectedFeedback.status === st
+                              ? "bg-primary text-white shadow-md shadow-primary/20"
+                              : "bg-gray-100 text-gray-600 hover:bg-gray-200"
+                          }`}
+                        >
+                          {st.replace("_", " ")}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* Rating & Category header info */}
+                  <div className="bg-gray-50 p-4 rounded-2xl flex flex-wrap items-center justify-between gap-3">
+                    <div className="flex items-center gap-1.5">
+                      <span className="text-xs font-bold text-gray-500">Rating:</span>
+                      <div className="flex items-center text-amber-400">
+                        {[1, 2, 3, 4, 5].map((s) => (
+                          <Star
+                            key={s}
+                            className={`w-4 h-4 ${
+                              s <= selectedFeedback.rating ? "fill-amber-400 text-amber-400" : "text-gray-300"
+                            }`}
+                          />
+                        ))}
+                      </div>
+                      <span className="text-xs font-bold text-gray-800 ml-1">
+                        ({selectedFeedback.rating} / 5)
+                      </span>
+                    </div>
+
+                    <div className="flex items-center gap-2">
+                      <span className="text-xs font-bold text-gray-500">Category:</span>
+                      <span className="text-xs font-bold bg-white text-gray-800 px-2.5 py-1 rounded-lg border border-gray-200">
+                        {FEEDBACK_CATEGORY_LABELS[selectedFeedback.category] || selectedFeedback.category}
+                      </span>
+                    </div>
+                  </div>
+
+                  {/* Sender details */}
+                  <div className="grid grid-cols-2 gap-3 text-xs bg-gray-50/70 p-4 rounded-2xl border border-gray-100">
+                    <div>
+                      <span className="text-gray-400 block font-medium">Role:</span>
+                      <span className="font-bold text-gray-800 capitalize">
+                        {selectedFeedback.role ? selectedFeedback.role.replace("_", " ") : "Student"}
+                      </span>
+                    </div>
+                    <div>
+                      <span className="text-gray-400 block font-medium">Location:</span>
+                      <span className="font-bold text-primary">
+                        {selectedFeedback.location || "Not specified"}
+                      </span>
+                    </div>
+                    <div>
+                      <span className="text-gray-400 block font-medium">Email:</span>
+                      <span className="font-medium text-gray-800">
+                        {selectedFeedback.email || "Not provided"}
+                      </span>
+                    </div>
+                    <div>
+                      <span className="text-gray-400 block font-medium">Phone:</span>
+                      <span className="font-medium text-gray-800">
+                        {selectedFeedback.phone || "Not provided"}
+                      </span>
+                    </div>
+                  </div>
+
+                  {/* Feedback Message */}
+                  <div>
+                    {selectedFeedback.subject && (
+                      <h4 className="font-bold text-gray-900 text-sm mb-1">{selectedFeedback.subject}</h4>
+                    )}
+                    <label className="text-xs font-bold text-gray-500 uppercase block mb-1">
+                      Full Feedback
+                    </label>
+                    <div className="p-4 bg-gray-50 rounded-2xl text-gray-800 text-sm leading-relaxed border border-gray-100 whitespace-pre-wrap">
+                      {selectedFeedback.message}
+                    </div>
+                  </div>
+
+                  {/* Internal Admin Notes */}
+                  <div>
+                    <label className="text-xs font-bold text-gray-700 uppercase block mb-1.5">
+                      Internal Admin Notes / Action Taken
+                    </label>
+                    <textarea
+                      rows={3}
+                      placeholder="e.g. Dispatched technician to Hostel Block B to inspect AP coverage. Switch port replaced."
+                      value={editingAdminNotes}
+                      onChange={(e) => setEditingAdminNotes(e.target.value)}
+                      className="w-full px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-xs focus:outline-none focus:border-primary focus:bg-white resize-none"
+                    />
+                    <div className="flex justify-between items-center mt-3">
+                      <button
+                        type="button"
+                        onClick={() => saveFeedbackNotes(selectedFeedback._id)}
+                        disabled={savingFeedbackNotes}
+                        className="px-4 py-2.5 bg-primary hover:bg-primary-dark text-white font-bold text-xs rounded-xl shadow-md transition-all flex items-center gap-1.5"
+                      >
+                        {savingFeedbackNotes ? "Saving..." : "Save Admin Notes"}
+                      </button>
+
+                      <button
+                        type="button"
+                        onClick={() => deleteFeedback(selectedFeedback._id)}
+                        className="px-3 py-2 text-xs font-bold text-red-600 hover:bg-red-50 rounded-xl transition-colors"
+                      >
+                        Delete Feedback
+                      </button>
+                    </div>
+                  </div>
+                </div>
               </div>
             </motion.div>
           </>
