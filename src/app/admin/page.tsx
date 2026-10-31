@@ -90,7 +90,7 @@ interface FeedbackItem {
   createdAt: string;
 }
 
-type AdminTab = "orders" | "products" | "businesses" | "polls" | "feedback";
+type AdminTab = "orders" | "visitors" | "products" | "businesses" | "polls" | "feedback";
 
 const FEEDBACK_STATUS_COLORS: Record<string, string> = {
   new: "bg-blue-100 text-blue-700 border-blue-200",
@@ -324,12 +324,35 @@ export default function AdminPage() {
       setLoadingFeedbacks(false);
     }
   }, [isAuthenticated]);
+  const [visitorStats, setVisitorStats] = useState<any>(null);
+  const [recentVisits, setRecentVisits] = useState<any[]>([]);
+  const [loadingVisitors, setLoadingVisitors] = useState(false);
+  const [visitorSearch, setVisitorSearch] = useState("");
+  const [visitorSourceFilter, setVisitorSourceFilter] = useState("all");
+
+  const fetchVisitors = useCallback(async () => {
+    if (!isAuthenticated) return;
+    setLoadingVisitors(true);
+    try {
+      const res = await fetch("/api/analytics/marketplace");
+      const data = await res.json();
+      if (data.success) {
+        setVisitorStats(data.stats);
+        setRecentVisits(data.recentVisits || []);
+      }
+    } catch {
+      // ignore
+    } finally {
+      setLoadingVisitors(false);
+    }
+  }, [isAuthenticated]);
 
   useEffect(() => { fetchOrders(); }, [fetchOrders]);
   useEffect(() => { fetchProducts(); }, [fetchProducts]);
   useEffect(() => { fetchBusinesses(); }, [fetchBusinesses]);
   useEffect(() => { fetchPolls(); }, [fetchPolls]);
   useEffect(() => { fetchFeedbacks(); }, [fetchFeedbacks]);
+  useEffect(() => { fetchVisitors(); }, [fetchVisitors]);
 
   // Poll Actions
   async function savePoll(e: React.FormEvent) {
@@ -782,6 +805,7 @@ export default function AdminPage() {
               <div className="flex gap-1 bg-gray-100 p-1 rounded-2xl overflow-x-auto max-w-full w-full md:w-auto scrollbar-none">
                 {[
                   { key: "orders", label: "Orders", icon: ShoppingBag, count: orders.length },
+                  { key: "visitors", label: "Marketplace Visitors", icon: TrendingUp, count: visitorStats?.totalVisits || 0 },
                   { key: "businesses", label: "Partners", icon: Store, count: businesses.length },
                   { key: "products", label: "Products", icon: Package, count: products.length },
                   { key: "polls", label: "Polls", icon: Vote, count: polls.length },
@@ -824,7 +848,7 @@ export default function AdminPage() {
         <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3 sm:gap-4 mb-8">
           {[
             { label: "Total Orders", value: stats.totalOrders, icon: ShoppingBag, color: "text-blue-600 bg-blue-50" },
-            { label: "Order Volume", value: `GHS ${stats.totalRevenue.toLocaleString()}`, icon: TrendingUp, color: "text-green-600 bg-green-50" },
+            { label: "Marketplace Visits", value: visitorStats ? `${visitorStats.totalVisits} (${visitorStats.hotspotVisits} WiFi)` : "...", icon: TrendingUp, color: "text-emerald-600 bg-emerald-50" },
             { label: "Partner Businesses", value: stats.totalBusinesses, icon: Store, color: "text-purple-600 bg-purple-50" },
             { label: "Listed Products", value: stats.totalProducts, icon: Package, color: "text-primary bg-accent-light" },
             { label: "Active Polls", value: `${polls.filter(p => p.isActive).length} / ${polls.length}`, icon: Vote, color: "text-amber-600 bg-amber-50" },
@@ -1605,6 +1629,288 @@ export default function AdminPage() {
                       </div>
                     );
                   })}
+              </div>
+            )}
+          </motion.div>
+        )}
+
+        {/* ── TAB: MARKETPLACE VISITORS & HOTSPOT TRAFFIC ANALYTICS ── */}
+        {tab === "visitors" && (
+          <motion.div initial="hidden" animate="visible" variants={fadeIn}>
+            {/* Header & Controls */}
+            <div className="flex flex-wrap items-center justify-between gap-4 mb-6">
+              <div>
+                <h2 className="text-xl font-heading font-bold text-gray-900 flex items-center gap-2">
+                  <TrendingUp className="w-5 h-5 text-primary" />
+                  <span>Marketplace Visitor Analytics</span>
+                </h2>
+                <p className="text-xs text-gray-500 mt-0.5">
+                  Real-time traffic and engagement from Hotspot Captive Portal ads and direct website users.
+                </p>
+              </div>
+
+              <div className="flex items-center gap-2">
+                <button
+                  onClick={fetchVisitors}
+                  className="flex items-center gap-1.5 px-3 py-2 bg-white border border-gray-200 rounded-xl text-xs font-bold text-gray-700 hover:text-primary hover:border-primary transition-all shadow-sm"
+                >
+                  <RefreshCw className={`w-3.5 h-3.5 ${loadingVisitors ? "animate-spin text-primary" : ""}`} />
+                  <span>Refresh Traffic</span>
+                </button>
+              </div>
+            </div>
+
+            {/* 4 Stats Cards */}
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
+              <div className="bg-white rounded-2xl p-4 border border-gray-100 shadow-sm">
+                <span className="text-[10px] font-bold text-gray-400 uppercase tracking-wider block">Total Marketplace Visits</span>
+                <p className="text-2xl font-bold font-heading text-gray-900 mt-1">
+                  {visitorStats?.totalVisits ?? 0}
+                </p>
+                <span className="text-[11px] text-emerald-600 font-semibold flex items-center gap-1 mt-1">
+                  <span>+</span>{visitorStats?.todayVisits ?? 0} today
+                </span>
+              </div>
+
+              <div className="bg-white rounded-2xl p-4 border border-primary/20 bg-gradient-to-br from-white to-primary/5 shadow-sm">
+                <span className="text-[10px] font-bold text-primary uppercase tracking-wider block">Hotspot WiFi Visitors</span>
+                <p className="text-2xl font-bold font-heading text-primary mt-1">
+                  {visitorStats?.hotspotVisits ?? 0}
+                </p>
+                <span className="text-[11px] text-primary/80 font-semibold block mt-1">
+                  Ad clicks from Captive Portal
+                </span>
+              </div>
+
+              <div className="bg-white rounded-2xl p-4 border border-gray-100 shadow-sm">
+                <span className="text-[10px] font-bold text-gray-400 uppercase tracking-wider block">Unique WiFi Devices</span>
+                <p className="text-2xl font-bold font-heading text-gray-900 mt-1">
+                  {visitorStats?.uniqueHotspotDevices ?? 0}
+                </p>
+                <span className="text-[11px] text-gray-500 font-semibold block mt-1">
+                  Distinct MAC addresses logged
+                </span>
+              </div>
+
+              <div className="bg-white rounded-2xl p-4 border border-gray-100 shadow-sm">
+                <span className="text-[10px] font-bold text-gray-400 uppercase tracking-wider block">Store Orders Placed</span>
+                <p className="text-2xl font-bold font-heading text-emerald-600 mt-1">
+                  {visitorStats?.ordersCount ?? orders.length}
+                </p>
+                <span className="text-[11px] text-gray-500 font-semibold block mt-1">
+                  {visitorStats?.totalVisits ? ((visitorStats.ordersCount / visitorStats.totalVisits) * 100).toFixed(1) : 0}% visitor conversion
+                </span>
+              </div>
+            </div>
+
+            {/* Source Attribution Cards */}
+            <div className="bg-white rounded-2xl p-5 border border-gray-100 shadow-sm mb-6">
+              <h3 className="text-sm font-bold font-heading text-gray-900 mb-3 flex items-center gap-2">
+                <Tag className="w-4 h-4 text-primary" />
+                <span>Traffic Breakdown by Ad Source</span>
+              </h3>
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                {[
+                  {
+                    key: "hotspot_alogin",
+                    title: "Post-Login Ad",
+                    desc: "After connecting to WiFi",
+                    count: visitorStats?.sources?.find((s: any) => s.source === "hotspot_alogin")?.count || 0,
+                    badge: "bg-emerald-50 text-emerald-700 border-emerald-200",
+                  },
+                  {
+                    key: "hotspot_login",
+                    title: "Login Screen Banner",
+                    desc: "Before entering voucher",
+                    count: visitorStats?.sources?.find((s: any) => s.source === "hotspot_login")?.count || 0,
+                    badge: "bg-amber-50 text-amber-700 border-amber-200",
+                  },
+                  {
+                    key: "hotspot_status",
+                    title: "Hotspot Status Page",
+                    desc: "While connected online",
+                    count: visitorStats?.sources?.find((s: any) => s.source === "hotspot_status")?.count || 0,
+                    badge: "bg-blue-50 text-blue-700 border-blue-200",
+                  },
+                  {
+                    key: "direct",
+                    title: "Direct & Web",
+                    desc: "Organic website visitors",
+                    count: visitorStats?.sources?.find((s: any) => s.source === "direct" || s.source === "in_store_browse" || s.source === "shop_view")?.count || 0,
+                    badge: "bg-gray-50 text-gray-700 border-gray-200",
+                  },
+                ].map((src) => (
+                  <div key={src.key} className="p-3.5 rounded-xl border border-gray-100 bg-gray-50/50">
+                    <div className="flex items-center justify-between mb-1">
+                      <span className="text-xs font-bold text-gray-800">{src.title}</span>
+                      <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full border ${src.badge}`}>
+                        {src.count} clicks
+                      </span>
+                    </div>
+                    <p className="text-[11px] text-gray-500">{src.desc}</p>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* Filter & Search Bar */}
+            <div className="bg-white rounded-2xl p-4 border border-gray-100 shadow-sm mb-4 flex flex-wrap items-center justify-between gap-3">
+              <div className="flex flex-wrap items-center gap-3 flex-1 min-w-[280px]">
+                <div className="relative flex-1 min-w-[200px]">
+                  <Search className="w-4 h-4 text-gray-400 absolute left-3 top-1/2 -translate-y-1/2" />
+                  <input
+                    type="text"
+                    placeholder="Search by voucher, MAC, or shop..."
+                    value={visitorSearch}
+                    onChange={(e) => setVisitorSearch(e.target.value)}
+                    className="w-full pl-9 pr-3 py-2 bg-gray-50 border border-gray-200 rounded-xl text-xs focus:outline-none focus:border-primary focus:bg-white"
+                  />
+                </div>
+
+                <select
+                  value={visitorSourceFilter}
+                  onChange={(e) => setVisitorSourceFilter(e.target.value)}
+                  className="px-3 py-2 bg-gray-50 border border-gray-200 rounded-xl text-xs font-medium text-gray-700 focus:outline-none focus:border-primary"
+                >
+                  <option value="all">All Ad Sources</option>
+                  <option value="hotspot">All Hotspot Ads</option>
+                  <option value="hotspot_alogin">Post-Login Ad</option>
+                  <option value="hotspot_login">Login Screen Banner</option>
+                  <option value="hotspot_status">Status Page</option>
+                  <option value="shop_view">Shop Views</option>
+                  <option value="direct">Direct Web</option>
+                </select>
+              </div>
+
+              <span className="text-xs text-gray-400 font-medium">
+                Showing {
+                  recentVisits.filter((v: any) => {
+                    const matchSource =
+                      visitorSourceFilter === "all" ||
+                      (visitorSourceFilter === "hotspot" ? v.source?.startsWith("hotspot") : v.source === visitorSourceFilter);
+                    const q = visitorSearch.toLowerCase();
+                    const matchQ =
+                      !q ||
+                      v.username?.toLowerCase().includes(q) ||
+                      v.macAddress?.toLowerCase().includes(q) ||
+                      v.businessName?.toLowerCase().includes(q) ||
+                      v.source?.toLowerCase().includes(q);
+                    return matchSource && matchQ;
+                  }).length
+                } recent visits
+              </span>
+            </div>
+
+            {/* Visitor Log Table */}
+            {loadingVisitors ? (
+              <div className="bg-white rounded-2xl p-12 text-center border border-gray-100">
+                <div className="w-8 h-8 border-4 border-primary border-t-transparent rounded-full animate-spin mx-auto mb-3" />
+                <p className="text-gray-400 text-sm">Loading visitor activity...</p>
+              </div>
+            ) : recentVisits.length === 0 ? (
+              <div className="bg-white rounded-3xl p-12 text-center border border-gray-100 shadow-sm">
+                <TrendingUp className="w-12 h-12 text-gray-300 mx-auto mb-3" />
+                <h3 className="font-heading font-bold text-gray-900 text-lg mb-1">No Marketplace Visits Recorded Yet</h3>
+                <p className="text-gray-500 text-xs max-w-md mx-auto">
+                  When hotspot users connect to Wi-Fi and click the Infoway partnership links, their activity will appear here in real-time.
+                </p>
+              </div>
+            ) : (
+              <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
+                <div className="overflow-x-auto">
+                  <table className="w-full text-left text-xs">
+                    <thead className="bg-gray-50/75 border-b border-gray-100 text-gray-500 font-bold uppercase tracking-wider text-[10px]">
+                      <tr>
+                        <th className="py-3 px-4">Time</th>
+                        <th className="py-3 px-4">Ad Source</th>
+                        <th className="py-3 px-4">Hotspot User / Voucher</th>
+                        <th className="py-3 px-4">Device MAC Address</th>
+                        <th className="py-3 px-4">Device</th>
+                        <th className="py-3 px-4">Activity / Store Viewed</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-gray-100">
+                      {recentVisits
+                        .filter((v: any) => {
+                          const matchSource =
+                            visitorSourceFilter === "all" ||
+                            (visitorSourceFilter === "hotspot" ? v.source?.startsWith("hotspot") : v.source === visitorSourceFilter);
+                          const q = visitorSearch.toLowerCase();
+                          const matchQ =
+                            !q ||
+                            v.username?.toLowerCase().includes(q) ||
+                            v.macAddress?.toLowerCase().includes(q) ||
+                            v.businessName?.toLowerCase().includes(q) ||
+                            v.source?.toLowerCase().includes(q);
+                          return matchSource && matchQ;
+                        })
+                        .map((v: any, idx: number) => {
+                          const isHotspot = v.source?.startsWith("hotspot");
+                          const sourceLabel =
+                            v.source === "hotspot_alogin"
+                              ? "Post-Login Ad"
+                              : v.source === "hotspot_login"
+                              ? "Login Banner"
+                              : v.source === "hotspot_status"
+                              ? "Status Page"
+                              : v.source === "shop_view"
+                              ? "Store View"
+                              : "Direct";
+
+                          const sourceBadge =
+                            v.source === "hotspot_alogin"
+                              ? "bg-emerald-50 text-emerald-700 border-emerald-200"
+                              : v.source === "hotspot_login"
+                              ? "bg-amber-50 text-amber-700 border-amber-200"
+                              : v.source === "hotspot_status"
+                              ? "bg-blue-50 text-blue-700 border-blue-200"
+                              : "bg-gray-50 text-gray-600 border-gray-200";
+
+                          return (
+                            <tr key={v._id || idx} className="hover:bg-gray-50/50 transition-colors">
+                              <td className="py-3 px-4 font-mono text-gray-500 whitespace-nowrap">
+                                {new Date(v.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}{" "}
+                                <span className="text-[10px] text-gray-400">
+                                  {new Date(v.createdAt).toLocaleDateString([], { month: 'short', day: 'numeric' })}
+                                </span>
+                              </td>
+                              <td className="py-3 px-4 whitespace-nowrap">
+                                <span className={`inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-bold border ${sourceBadge}`}>
+                                  {isHotspot && <span className="w-1.5 h-1.5 rounded-full bg-current" />}
+                                  {sourceLabel}
+                                </span>
+                              </td>
+                              <td className="py-3 px-4 whitespace-nowrap">
+                                {v.username ? (
+                                  <span className="font-mono font-bold text-gray-900 bg-gray-100 px-2 py-0.5 rounded">
+                                    {v.username}
+                                  </span>
+                                ) : (
+                                  <span className="text-gray-400 italic">Guest</span>
+                                )}
+                              </td>
+                              <td className="py-3 px-4 font-mono text-gray-600 whitespace-nowrap">
+                                {v.macAddress || <span className="text-gray-300">—</span>}
+                              </td>
+                              <td className="py-3 px-4 capitalize text-gray-600 whitespace-nowrap">
+                                {v.deviceType || "mobile"}
+                              </td>
+                              <td className="py-3 px-4 text-gray-800">
+                                {v.businessName ? (
+                                  <span className="font-bold text-primary flex items-center gap-1">
+                                    <Store className="w-3.5 h-3.5" />
+                                    {v.businessName}
+                                  </span>
+                                ) : (
+                                  <span className="text-gray-500">Browsing Catalog</span>
+                                )}
+                              </td>
+                            </tr>
+                          );
+                        })}
+                    </tbody>
+                  </table>
+                </div>
               </div>
             )}
           </motion.div>

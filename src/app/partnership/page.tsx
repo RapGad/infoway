@@ -82,8 +82,27 @@ export default function PartnershipPage() {
     notes: "",
   });
 
-  // Fetch businesses
+  // Fetch businesses & track marketplace visit
   useEffect(() => {
+    // Track visit from captive portal or direct browsing
+    if (typeof window !== "undefined") {
+      const params = new URLSearchParams(window.location.search);
+      const source = params.get("source") || "direct";
+      const mac = params.get("mac");
+      const user = params.get("user");
+
+      fetch("/api/analytics/track-visit", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          source,
+          mac,
+          username: user,
+          path: window.location.pathname,
+        }),
+      }).catch(() => {});
+    }
+
     // Attempt auto-seed if first time
     fetch("/api/seed", { method: "POST" })
       .catch(() => {})
@@ -110,6 +129,18 @@ export default function PartnershipPage() {
   async function selectBusiness(biz: Business) {
     setSelectedBusiness(biz);
     setLoadingProducts(true);
+
+    // Track business inspection
+    fetch("/api/analytics/track-visit", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        source: "shop_view",
+        businessName: biz.name,
+        path: `/partnership#${biz._id}`,
+      }),
+    }).catch(() => {});
+
     try {
       const res = await fetch(`/api/products?businessId=${biz._id}`);
       const data = await res.json();

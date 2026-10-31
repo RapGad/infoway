@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   Wifi,
@@ -112,28 +112,49 @@ export default function VoucherBalancePage() {
   const [result, setResult] = useState<VoucherBalance | null>(null);
   const [error, setError] = useState<string | null>(null);
 
-  const handleCheck = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!code.trim()) return;
+  const checkCode = async (voucherCode: string) => {
+    const trimmed = voucherCode.trim();
+    if (!trimmed) return;
 
     setLoading(true);
     setResult(null);
     setError(null);
 
     try {
-      const res = await fetch(`${DASHBOARD_API}?code=${encodeURIComponent(code.trim().toUpperCase())}`);
-      const data = await res.json();
+      const res = await fetch(`${DASHBOARD_API}?code=${encodeURIComponent(trimmed.toUpperCase())}`, {
+        headers: { Accept: "application/json" },
+      });
+      const data = await res.json().catch(() => null);
 
       if (!res.ok) {
-        setError(data.error || "Failed to check voucher. Please try again.");
-      } else {
+        setError(data?.error || `Unable to locate voucher. Please verify the code and try again.`);
+      } else if (data) {
         setResult(data);
+      } else {
+        setError("Invalid response from server. Please try again.");
       }
-    } catch {
-      setError("Could not connect to the server. Please check your internet and try again.");
+    } catch (err) {
+      console.error("Voucher balance fetch error:", err);
+      setError("Could not connect to the server. Please check your internet connection and try again.");
     } finally {
       setLoading(false);
     }
+  };
+
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      const params = new URLSearchParams(window.location.search);
+      const urlCode = params.get("code");
+      if (urlCode) {
+        setCode(urlCode);
+        checkCode(urlCode);
+      }
+    }
+  }, []);
+
+  const handleCheck = async (e: React.FormEvent) => {
+    e.preventDefault();
+    checkCode(code);
   };
 
   const handleReset = () => {
