@@ -28,6 +28,7 @@ interface Product {
   description: string;
   price: number;
   category: string;
+  image?: string;
   inStock: boolean;
   featured?: boolean;
   tags?: string[];
@@ -470,29 +471,50 @@ export default function PartnershipPage() {
                     return (
                       <div
                         key={product._id}
-                        className="bg-white border border-gray-100 rounded-3xl p-6 shadow-sm hover:shadow-lg hover:border-primary/30 transition-all flex flex-col justify-between"
+                        className="bg-white border border-gray-100 rounded-3xl p-5 shadow-sm hover:shadow-xl hover:border-primary/40 transition-all duration-300 flex flex-col justify-between overflow-hidden group"
                       >
                         <div>
-                          <div className="flex items-start justify-between gap-2 mb-3">
-                            <span className="text-xs font-semibold px-2.5 py-1 bg-gray-100 rounded-lg text-gray-600">
-                              {product.category}
-                            </span>
-                            {product.featured && (
-                              <span className="inline-flex items-center gap-1 text-xs font-bold text-yellow-600 bg-yellow-50 px-2.5 py-1 rounded-lg">
-                                <Star className="w-3 h-3 fill-yellow-500" /> Featured
+                          {/* Product Photo with Cloudflare R2 / Optimization */}
+                          <div className="relative w-full h-48 rounded-2xl overflow-hidden bg-gray-100 mb-4 flex items-center justify-center">
+                            {product.image ? (
+                              <img
+                                src={product.image}
+                                alt={product.name}
+                                loading="lazy"
+                                decoding="async"
+                                className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                              />
+                            ) : (
+                              <div className="w-full h-full flex flex-col items-center justify-center text-gray-300 bg-gray-50/80">
+                                <ShoppingBag className="w-10 h-10 mb-1 text-primary/40" />
+                                <span className="text-[10px] uppercase font-bold tracking-wider text-gray-400">Infoway Partner</span>
+                              </div>
+                            )}
+
+                            {/* Badges Overlay */}
+                            <div className="absolute top-2.5 left-2.5 flex items-center gap-1.5">
+                              <span className="text-xs font-semibold px-2.5 py-1 bg-white/95 backdrop-blur-md rounded-lg text-gray-700 shadow-sm">
+                                {product.category}
                               </span>
+                            </div>
+                            {product.featured && (
+                              <div className="absolute top-2.5 right-2.5">
+                                <span className="inline-flex items-center gap-1 text-xs font-bold text-yellow-700 bg-yellow-100/95 backdrop-blur-md px-2.5 py-1 rounded-lg shadow-sm">
+                                  <Star className="w-3 h-3 fill-yellow-500" /> Featured
+                                </span>
+                              </div>
                             )}
                           </div>
 
-                          <h4 className="text-xl font-bold font-heading text-gray-900 mb-2">
+                          <h4 className="text-xl font-bold font-heading text-gray-900 mb-1.5 group-hover:text-primary transition-colors">
                             {product.name}
                           </h4>
-                          <p className="text-gray-500 text-sm leading-relaxed mb-4">
+                          <p className="text-gray-500 text-sm leading-relaxed mb-4 line-clamp-2">
                             {product.description}
                           </p>
 
                           {product.tags && product.tags.length > 0 && (
-                            <div className="flex flex-wrap gap-1.5 mb-6">
+                            <div className="flex flex-wrap gap-1.5 mb-5">
                               {product.tags.map((t, idx) => (
                                 <span key={idx} className="text-[11px] bg-accent-light text-primary font-medium px-2 py-0.5 rounded-full">
                                   #{t}
@@ -612,8 +634,19 @@ export default function PartnershipPage() {
                   cart.map((item) => (
                     <div
                       key={item.product._id}
-                      className="bg-gray-50 border border-gray-100 rounded-2xl p-4 flex items-center justify-between gap-3"
+                      className="bg-gray-50 border border-gray-100 rounded-2xl p-3 flex items-center justify-between gap-3"
                     >
+                      {item.product.image ? (
+                        <img
+                          src={item.product.image}
+                          alt={item.product.name}
+                          className="w-14 h-14 rounded-xl object-cover flex-shrink-0 bg-gray-200 border border-gray-200"
+                        />
+                      ) : (
+                        <div className="w-14 h-14 rounded-xl bg-primary/10 flex items-center justify-center flex-shrink-0 text-primary">
+                          <ShoppingBag className="w-6 h-6" />
+                        </div>
+                      )}
                       <div className="flex-1 min-w-0">
                         <span className="text-[11px] font-semibold text-primary block truncate">
                           {item.product.businessName}

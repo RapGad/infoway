@@ -10,6 +10,7 @@
     "admin:reset": "node scripts/reset-admin.cjs"
   },
   "dependencies": {
+    "@aws-sdk/client-s3": "^3.1161.0",
     "@sanity/icons": "^3.7.4",
     "@sanity/image-url": "^2.1.1",
     "@sanity/vision": "^5.31.1",

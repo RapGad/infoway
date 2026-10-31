@@ -7,7 +7,8 @@ import {
   Package, ShoppingBag, TrendingUp, Plus, X, CheckCircle,
   Trash2, Edit3, Search, Filter, Eye, AlertCircle,
   Store, RefreshCw, BarChart3, MapPin, Phone, Tag, LogOut, Lock, Vote, ExternalLink,
-  MessageSquareHeart, Star, CheckCircle2, User, Mail, MessageSquare, Clock
+  MessageSquareHeart, Star, CheckCircle2, User, Mail, MessageSquare, Clock,
+  Upload, Image as ImageIcon, Camera, Cloud
 } from "lucide-react";
 
 // ---------- Interfaces ----------
@@ -49,6 +50,7 @@ interface Product {
   description: string;
   price: number;
   category: string;
+  image?: string;
   inStock: boolean;
   featured?: boolean;
   tags?: string[];
@@ -173,10 +175,13 @@ export default function AdminPage() {
     description: "",
     price: "",
     category: "",
+    image: "",
     tags: "",
     inStock: true,
     featured: false,
   });
+  const [uploadingImage, setUploadingImage] = useState(false);
+  const [uploadProgressMsg, setUploadProgressMsg] = useState<string | null>(null);
 
   const [saving, setSaving] = useState(false);
   const [toast, setToast] = useState<{ msg: string; type: "success" | "error" } | null>(null);
@@ -582,6 +587,7 @@ export default function AdminPage() {
         description: product.description,
         price: String(product.price),
         category: product.category,
+        image: product.image || "",
         tags: product.tags ? product.tags.join(", ") : "",
         inStock: product.inStock,
         featured: product.featured || false,
@@ -594,12 +600,55 @@ export default function AdminPage() {
         description: "",
         price: "",
         category: "",
+        image: "",
         tags: "",
         inStock: true,
         featured: false,
       });
     }
     setShowProductModal(true);
+  }
+
+  // Handle Photo Upload with Client-Side Optimization (WebP + Resizing)
+  async function handleImageFileChange(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    setUploadingImage(true);
+    setUploadProgressMsg("Optimizing image for fast mobile loading...");
+
+    try {
+      // 1. Optimize image in-browser before upload (reduces 5MB to ~150KB)
+      const { optimizeImageForWeb } = await import("@/lib/image-optimizer");
+      const optimizedFile = await optimizeImageForWeb(file, { maxWidth: 1200, maxHeight: 1200, quality: 0.85 });
+
+      setUploadProgressMsg("Uploading photo to Cloudflare CDN...");
+
+      // 2. Upload to Cloudflare R2 / media storage
+      const formData = new FormData();
+      formData.append("file", optimizedFile);
+
+      const res = await fetch("/api/upload", {
+        method: "POST",
+        body: formData,
+      });
+
+      const data = await res.json();
+      if (!data.success) {
+        showToast(data.error || "Failed to upload image", "error");
+      } else {
+        setProductForm((prev) => ({ ...prev, image: data.url }));
+        const providerName = data.provider === "cloudflare-r2" ? "Cloudflare R2" : "Media Storage";
+        showToast(`Photo optimized & uploaded to ${providerName}!`);
+      }
+    } catch (err: any) {
+      console.error("Upload error:", err);
+      showToast("Error uploading product image", "error");
+    } finally {
+      setUploadingImage(false);
+      setUploadProgressMsg(null);
+      e.target.value = "";
+    }
   }
 
   // Product Save
@@ -619,6 +668,7 @@ export default function AdminPage() {
       description: productForm.description,
       price: parseFloat(productForm.price),
       category: productForm.category || "General",
+      image: productForm.image ? productForm.image.trim() : undefined,
       tags: productForm.tags.split(",").map((t) => t.trim()).filter(Boolean),
       inStock: productForm.inStock,
       featured: productForm.featured,
@@ -1125,18 +1175,35 @@ export default function AdminPage() {
                     className="bg-white border border-gray-100 rounded-2xl p-5 shadow-sm hover:shadow-md transition-all flex flex-col justify-between"
                   >
                     <div>
-                      <div className="flex items-start justify-between gap-2 mb-2">
-                        <span className="text-[11px] font-bold text-primary uppercase">
-                          {prod.businessName}
-                        </span>
-                        <span className="text-xs px-2 py-0.5 rounded-full bg-gray-100 text-gray-600 font-medium">
-                          {prod.category}
-                        </span>
+                      <div className="flex gap-3.5 mb-3">
+                        <div className="w-16 h-16 rounded-xl bg-gray-100 overflow-hidden shrink-0 border border-gray-100 flex items-center justify-center">
+                          {prod.image ? (
+                            <img
+                              src={prod.image}
+                              alt={prod.name}
+                              loading="lazy"
+                              decoding="async"
+                              className="w-full h-full object-cover"
+                            />
+                          ) : (
+                            <Package className="w-7 h-7 text-gray-300" />
+                          )}
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-start justify-between gap-2 mb-1">
+                            <span className="text-[11px] font-bold text-primary uppercase truncate">
+                              {prod.businessName}
+                            </span>
+                            <span className="text-[10px] px-2 py-0.5 rounded-full bg-gray-100 text-gray-600 font-medium shrink-0">
+                              {prod.category}
+                            </span>
+                          </div>
+                          <h4 className="font-bold text-gray-900 text-base mb-1 truncate">{prod.name}</h4>
+                          <p className="text-gray-500 text-xs line-clamp-2 leading-relaxed">
+                            {prod.description}
+                          </p>
+                        </div>
                       </div>
-                      <h4 className="font-bold text-gray-900 text-base mb-1">{prod.name}</h4>
-                      <p className="text-gray-500 text-xs line-clamp-2 mb-3 leading-relaxed">
-                        {prod.description}
-                      </p>
                     </div>
 
                     <div className="pt-3 border-t border-gray-100 flex items-center justify-between">
@@ -2204,6 +2271,79 @@ export default function AdminPage() {
                       onChange={(e) => setProductForm({ ...productForm, name: e.target.value })}
                       className="w-full px-4 py-2.5 border border-gray-200 rounded-xl focus:border-primary focus:outline-none text-sm"
                     />
+                  </div>
+
+                  {/* Product Photo Upload with Cloudflare R2 / Optimization */}
+                  <div>
+                    <div className="flex items-center justify-between mb-1">
+                      <label className="block text-xs font-bold text-gray-700 uppercase">
+                        Product Photo
+                      </label>
+                      <span className="inline-flex items-center gap-1 text-[10px] font-semibold text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded-full">
+                        <Cloud className="w-3 h-3" />
+                        Cloudflare R2 CDN
+                      </span>
+                    </div>
+
+                    {productForm.image ? (
+                      <div className="rounded-2xl border border-gray-200 bg-gray-50 p-2.5 flex items-center gap-3">
+                        <div className="w-16 h-16 rounded-xl overflow-hidden bg-white border border-gray-200 shrink-0">
+                          <img
+                            src={productForm.image}
+                            alt="Product preview"
+                            className="w-full h-full object-cover"
+                          />
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <p className="text-xs font-mono text-gray-600 truncate">{productForm.image}</p>
+                          <p className="text-[10px] text-emerald-600 font-semibold mt-0.5">Photo loaded & ready</p>
+                        </div>
+                        <button
+                          type="button"
+                          onClick={() => setProductForm((p) => ({ ...p, image: "" }))}
+                          className="p-2 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-xl transition-colors shrink-0"
+                          title="Remove photo"
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </button>
+                      </div>
+                    ) : (
+                      <div className="space-y-2">
+                        <label className={`border-2 border-dashed rounded-2xl p-4 flex flex-col items-center justify-center cursor-pointer transition-all ${
+                          uploadingImage ? "border-primary bg-primary/5 cursor-wait" : "border-gray-200 hover:border-primary/50 hover:bg-gray-50/50"
+                        }`}>
+                          <input
+                            type="file"
+                            accept="image/*"
+                            disabled={uploadingImage}
+                            onChange={handleImageFileChange}
+                            className="hidden"
+                          />
+                          <div className="w-10 h-10 bg-primary/10 text-primary rounded-xl flex items-center justify-center mb-1.5">
+                            {uploadingImage ? (
+                              <RefreshCw className="w-5 h-5 animate-spin" />
+                            ) : (
+                              <Upload className="w-5 h-5" />
+                            )}
+                          </div>
+                          <p className="text-xs font-bold text-gray-800">
+                            {uploadingImage ? uploadProgressMsg || "Optimizing photo..." : "Upload Product Photo"}
+                          </p>
+                          <p className="text-[10px] text-gray-400 mt-0.5 text-center">
+                            Auto-compressed to WebP &amp; stored on Cloudflare R2
+                          </p>
+                        </label>
+
+                        {/* Optional direct URL input */}
+                        <input
+                          type="url"
+                          placeholder="Or paste direct image URL (https://...)"
+                          value={productForm.image}
+                          onChange={(e) => setProductForm({ ...productForm, image: e.target.value })}
+                          className="w-full px-3 py-1.5 text-xs border border-gray-200 rounded-xl focus:border-primary focus:outline-none"
+                        />
+                      </div>
+                    )}
                   </div>
 
                   <div className="grid grid-cols-2 gap-4">
