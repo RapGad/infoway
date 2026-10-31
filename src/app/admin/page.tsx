@@ -38,6 +38,7 @@ interface Business {
   phone: string;
   email?: string;
   badge?: string;
+  logo?: string;
   isActive: boolean;
   createdAt: string;
 }
@@ -164,7 +165,10 @@ export default function AdminPage() {
     phone: "",
     email: "",
     badge: "Hotspot Partner",
+    logo: "",
   });
+  const [uploadingBusinessLogo, setUploadingBusinessLogo] = useState(false);
+  const [businessLogoProgressMsg, setBusinessLogoProgressMsg] = useState("");
 
   // Product Modal & Form
   const [showProductModal, setShowProductModal] = useState(false);
@@ -1046,6 +1050,7 @@ export default function AdminPage() {
                     phone: "",
                     email: "",
                     badge: "Hotspot Partner",
+                    logo: "",
                   });
                   setShowBusinessModal(true);
                 }}
@@ -1075,9 +1080,17 @@ export default function AdminPage() {
                   return (
                     <div
                       key={biz._id}
-                      className="bg-white border border-gray-100 rounded-2xl p-6 shadow-sm hover:shadow-md transition-all flex flex-col justify-between"
+                      className="bg-white border border-gray-100 rounded-2xl overflow-hidden shadow-sm hover:shadow-md transition-all flex flex-col justify-between"
                     >
-                      <div>
+                      {/* Business logo banner */}
+                      <div className="h-24 bg-gradient-to-br from-primary/10 to-primary/5 flex items-center justify-center overflow-hidden">
+                        {biz.logo ? (
+                          <img src={biz.logo} alt={biz.name} className="w-full h-full object-cover" />
+                        ) : (
+                          <Store className="w-10 h-10 text-primary/30" />
+                        )}
+                      </div>
+                      <div className="p-6">
                         <div className="flex items-start justify-between gap-2 mb-3">
                           <span className="text-xs font-bold text-primary uppercase">{biz.category}</span>
                           <span className="text-[11px] font-bold px-2 py-0.5 rounded-full bg-accent-light text-primary">
@@ -1099,7 +1112,7 @@ export default function AdminPage() {
                         </div>
                       </div>
 
-                      <div className="pt-4 border-t border-gray-100 flex items-center justify-between">
+                      <div className="pt-4 border-t border-gray-100 flex items-center justify-between px-6 pb-6">
                         <span className="text-xs font-semibold text-gray-400">
                           {bizProductsCount} Product{bizProductsCount !== 1 ? "s" : ""}
                         </span>
@@ -1116,6 +1129,7 @@ export default function AdminPage() {
                                 phone: biz.phone,
                                 email: biz.email || "",
                                 badge: biz.badge || "Hotspot Partner",
+                                logo: biz.logo || "",
                               });
                               setShowBusinessModal(true);
                             }}
@@ -2203,6 +2217,82 @@ export default function AdminPage() {
                         className="w-full px-4 py-2.5 border border-gray-200 rounded-xl focus:border-primary focus:outline-none text-sm"
                       />
                     </div>
+                  </div>
+
+                  {/* Business Logo Upload */}
+                  <div>
+                    <label className="block text-xs font-bold text-gray-700 uppercase mb-2">Business Logo / Banner Photo</label>
+                    {businessForm.logo ? (
+                      <div className="relative mb-2">
+                        <img
+                          src={businessForm.logo}
+                          alt="Logo preview"
+                          className="w-full h-32 object-cover rounded-xl border border-gray-200"
+                        />
+                        <button
+                          type="button"
+                          className="absolute top-2 right-2 bg-white border border-gray-200 rounded-full p-1.5 shadow hover:bg-red-50 hover:border-red-300 transition-colors"
+                          onClick={() => setBusinessForm((p) => ({ ...p, logo: "" }))}
+                        >
+                          <X className="w-3.5 h-3.5 text-gray-500" />
+                        </button>
+                        <p className="text-xs font-mono text-gray-600 truncate mt-1 px-1">{businessForm.logo}</p>
+                      </div>
+                    ) : (
+                      <label
+                        className={`flex flex-col items-center justify-center gap-2 border-2 border-dashed rounded-xl py-5 cursor-pointer transition-all ${
+                          uploadingBusinessLogo ? "border-primary bg-primary/5 cursor-wait" : "border-gray-200 hover:border-primary/50"
+                        }`}
+                      >
+                        <input
+                          type="file"
+                          className="hidden"
+                          accept="image/*"
+                          disabled={uploadingBusinessLogo}
+                          onChange={async (e) => {
+                            const file = e.target.files?.[0];
+                            if (!file) return;
+                            setUploadingBusinessLogo(true);
+                            setBusinessLogoProgressMsg("Optimizing logo...");
+                            try {
+                              const { optimizeImageForWeb } = await import("@/lib/image-optimizer");
+                              const optimized = await optimizeImageForWeb(file, { maxWidth: 1200, maxHeight: 800, quality: 0.88 });
+                              setBusinessLogoProgressMsg("Uploading to Cloudflare...");
+                              const fd = new FormData();
+                              fd.append("file", optimized, optimized.name);
+                              const res = await fetch("/api/upload", { method: "POST", body: fd });
+                              const data = await res.json();
+                              if (data.success) {
+                                setBusinessForm((p) => ({ ...p, logo: data.url }));
+                                showToast("Logo uploaded!");
+                              } else {
+                                showToast(data.error || "Upload failed", "error");
+                              }
+                            } catch {
+                              showToast("Error uploading logo", "error");
+                            } finally {
+                              setUploadingBusinessLogo(false);
+                              setBusinessLogoProgressMsg("");
+                            }
+                          }}
+                        />
+                        {uploadingBusinessLogo ? (
+                          <Cloud className="w-6 h-6 text-primary animate-pulse" />
+                        ) : (
+                          <Camera className="w-6 h-6 text-gray-300" />
+                        )}
+                        <span className="text-xs font-semibold text-gray-400">
+                          {uploadingBusinessLogo ? businessLogoProgressMsg || "Uploading..." : "Upload Business Logo / Banner"}
+                        </span>
+                      </label>
+                    )}
+                    <input
+                      type="text"
+                      className="w-full mt-2 px-4 py-2 border border-gray-200 rounded-xl focus:border-primary focus:outline-none text-xs text-gray-700"
+                      placeholder="Or paste a logo/banner image URL (https://...)"
+                      value={businessForm.logo}
+                      onChange={(e) => setBusinessForm({ ...businessForm, logo: e.target.value })}
+                    />
                   </div>
 
                   <button

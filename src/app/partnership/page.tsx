@@ -17,6 +17,7 @@ interface Business {
   phone: string;
   email?: string;
   badge?: string;
+  logo?: string;
   productCount?: number;
 }
 
@@ -348,49 +349,65 @@ export default function PartnershipPage() {
                   <motion.div
                     key={biz._id}
                     variants={fadeIn}
-                    className="group bg-white border border-gray-100 rounded-3xl p-7 shadow-sm hover:shadow-xl hover:border-primary/40 transition-all duration-300 flex flex-col justify-between"
+                    className="group bg-white border border-gray-100 rounded-3xl shadow-sm hover:shadow-xl hover:border-primary/40 transition-all duration-300 flex flex-col justify-between overflow-hidden"
                   >
-                    <div>
-                      <div className="flex items-start justify-between gap-4 mb-4">
-                        <div className="w-14 h-14 bg-accent-light rounded-2xl flex items-center justify-center text-primary group-hover:bg-primary group-hover:text-white transition-colors shrink-0">
-                          <Store className="w-7 h-7" />
+                    {/* Business logo / banner */}
+                    <div className="relative h-44 bg-gradient-to-br from-primary/10 via-primary/5 to-transparent overflow-hidden">
+                      {biz.logo ? (
+                        <img
+                          src={biz.logo}
+                          alt={biz.name}
+                          loading="lazy"
+                          className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                        />
+                      ) : (
+                        <div className="w-full h-full flex flex-col items-center justify-center gap-2">
+                          <div className="w-16 h-16 bg-white/80 rounded-2xl flex items-center justify-center shadow-sm">
+                            <Store className="w-8 h-8 text-primary/60" />
+                          </div>
+                          <span className="text-xs font-bold text-primary/40 uppercase tracking-wider">{biz.category}</span>
                         </div>
-                        <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-primary/10 text-primary">
-                          <ShieldCheck className="w-3.5 h-3.5" />
-                          {biz.badge || "Partner Business"}
-                        </span>
-                      </div>
-
-                      <span className="text-xs font-bold text-primary uppercase tracking-wider block mb-1">
-                        {biz.category}
+                      )}
+                      {/* Badge overlay */}
+                      <span className="absolute top-3 right-3 inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-white/90 backdrop-blur-sm text-primary shadow-sm">
+                        <ShieldCheck className="w-3.5 h-3.5" />
+                        {biz.badge || "Partner Business"}
                       </span>
-                      <h3 className="text-2xl font-heading font-bold text-gray-900 group-hover:text-primary transition-colors mb-3">
-                        {biz.name}
-                      </h3>
-                      <p className="text-gray-600 text-sm leading-relaxed mb-6">
-                        {biz.description}
-                      </p>
                     </div>
 
-                    <div className="pt-4 border-t border-gray-100">
-                      <div className="space-y-2 mb-5 text-xs text-gray-500">
-                        <div className="flex items-center gap-2">
-                          <MapPin className="w-4 h-4 text-primary shrink-0" />
-                          <span>{biz.location}</span>
-                        </div>
-                        <div className="flex items-center gap-2">
-                          <Phone className="w-4 h-4 text-primary shrink-0" />
-                          <span>{biz.phone}</span>
-                        </div>
+                    <div className="p-6 flex flex-col flex-1">
+                      <div className="flex-1">
+                        <span className="text-xs font-bold text-primary uppercase tracking-wider block mb-1">
+                          {biz.category}
+                        </span>
+                        <h3 className="text-2xl font-heading font-bold text-gray-900 group-hover:text-primary transition-colors mb-3">
+                          {biz.name}
+                        </h3>
+                        <p className="text-gray-600 text-sm leading-relaxed mb-6">
+                          {biz.description}
+                        </p>
                       </div>
 
-                      <button
-                        onClick={() => selectBusiness(biz)}
-                        className="w-full py-3.5 bg-gray-900 group-hover:bg-primary text-white font-bold rounded-2xl transition-all duration-300 flex items-center justify-center gap-2 shadow-sm group-hover:shadow-lg group-hover:shadow-primary/30"
-                      >
-                        <span>View Products & Order</span>
-                        <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
-                      </button>
+                      <div className="pt-4 border-t border-gray-100">
+                        <div className="space-y-2 mb-5 text-xs text-gray-500">
+                          <div className="flex items-center gap-2">
+                            <MapPin className="w-4 h-4 text-primary shrink-0" />
+                            <span>{biz.location}</span>
+                          </div>
+                          <div className="flex items-center gap-2">
+                            <Phone className="w-4 h-4 text-primary shrink-0" />
+                            <span>{biz.phone}</span>
+                          </div>
+                        </div>
+
+                        <button
+                          onClick={() => selectBusiness(biz)}
+                          className="w-full py-3.5 bg-gray-900 group-hover:bg-primary text-white font-bold rounded-2xl transition-all duration-300 flex items-center justify-center gap-2 shadow-sm group-hover:shadow-lg group-hover:shadow-primary/30"
+                        >
+                          <span>View Products &amp; Order</span>
+                          <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
+                        </button>
+                      </div>
                     </div>
                   </motion.div>
                 ))}
